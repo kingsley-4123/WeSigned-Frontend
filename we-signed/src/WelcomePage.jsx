@@ -1,9 +1,10 @@
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import FeatureSection from "./FeatureSection";
+import { useRef } from "react";
 
 export default function WelcomePage() {
-
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const sections = [
     {
@@ -45,6 +46,13 @@ export default function WelcomePage() {
     }
   };
 
+  // Hero button inView tracking
+  const heroBtnRef = useRef(null);
+  const heroBtnInView = useInView(heroBtnRef, { amount: 0.5 });
+
+  const ctaBtnRef = useRef(null);
+  const ctaBtnInView = useInView(ctaBtnRef, { amount: 0.5 });
+
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
@@ -53,9 +61,9 @@ export default function WelcomePage() {
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          src="/images/logo-blue.svg"
+          src="/images/logo.png"
           alt="WeSigned Logo"
-          className="w-32 h-32 mb-6"
+          className="w-32 h-32 md:w-38 md:h-38 mb-6"
         />
         <motion.h1
           initial={{ opacity: 0 }}
@@ -73,47 +81,29 @@ export default function WelcomePage() {
         >
           Taking away the stress of paper-based attendance and making it effortless for both lecturers and students.
         </motion.p>
-        <motion.div whileHover={{ scale: 1.05 }}>
-          <Button
+
+        {/* Button with fade in/out */}
+        <motion.div
+          ref={heroBtnRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={heroBtnInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6 }}
+          whileHover={{ scale: 1.05 }}
+        >
+          <button
             size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white rounded-2xl px-8 py-6"
+            className="bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white rounded-2xl px-8 py-6"
             onClick={scrollToFeatures}
           >
             Explore Features
-          </Button>
+          </button>
         </motion.div>
       </section>
 
       {/* Feature Sections */}
       <div id="features">
         {sections.map((sec, idx) => (
-          <section
-            key={idx}
-            className={`grid grid-cols-1 md:grid-cols-2 gap-8 items-center px-8 md:px-20 py-20 ${
-              sec.reverse ? "md:flex-row-reverse" : ""
-            }`}
-          >
-            <motion.div
-              initial={{ opacity: 0, x: sec.reverse ? 100 : -100 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true }}
-              className="flex flex-col"
-            >
-              <h2 className="text-3xl font-bold text-blue-700 mb-4">{sec.title}</h2>
-              <p className="text-gray-600 text-lg leading-relaxed">{sec.text}</p>
-            </motion.div>
-
-            <motion.img
-              initial={{ opacity: 0, x: sec.reverse ? -100 : 100 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7 }}
-              viewport={{ once: true }}
-              src={sec.image}
-              alt={sec.title}
-              className="w-full max-w-md mx-auto"
-            />
-          </section>
+          <FeatureSection key={idx} sec={sec} reverse={sec.reverse} />
         ))}
       </div>
 
@@ -128,15 +118,21 @@ export default function WelcomePage() {
         >
           Ready to make attendance stress-free?
         </motion.h2>
-        <motion.div whileHover={{ scale: 1.05 }}>
-            <button
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-2xl px-8 py-4 text-lg transition-transform transform hover:scale-105"
-                onClick={() => navigate('/auth')}>
-                Get Started
-            </button>
-
+        <motion.div
+          ref={ctaBtnRef}
+          initial={{ opacity: 0, y: 20 }}
+          animate={ctaBtnInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.6 }}
+          whileHover={{ scale: 1.05 }}>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white font-medium rounded-2xl px-8 py-4 text-lg transition-transform transform hover:scale-105"
+            onClick={() => navigate("/auth")}
+          >
+            Get Started
+          </button>
         </motion.div>
       </section>
     </div>
   );
 }
+

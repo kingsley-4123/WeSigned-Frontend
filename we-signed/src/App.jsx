@@ -23,8 +23,7 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // if (loading) return <Loading isLoading={loading}/>;
-  loading ? <Loading isLoading={loading} /> : <WelcomePage />;
+  if(loading) return <Loading isLoading={loading} />;
   
   return (
     <Router>
@@ -32,14 +31,14 @@ function App() {
         <Route path="/" element={<WelcomePage />} />
         <Route path="/auth" element={<AuthForm />} />
         <Route path="/dashboard" element={<DashboardLayout />} >
-          <Route path="/lecturer/attendance-session" element={<AttendanceSession />} />  
-          <Route path="/student/attendance/:id" element={<AttendanceDetail />} />
-          <Route path="/student/attendance" element={<AttendancePage />} />
-          <Route path="/lecturer/timer" element={<TimerPage />} />
-          <Route path="/lecturer" element={<AttendanceTablePage />} />
-          <Route path="/student" element={<StudentPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/about" element={<AboutPage />} />
+          <Route path="lecturer/attendance-session" element={<AttendanceSession />} />  
+          <Route path="student/attendance/:id" element={<AttendanceDetail />} />
+          <Route path="student/attendance" element={<AttendancePage />} />
+          <Route path="lecturer/timer" element={<TimerPage />} />
+          <Route path="lecturer" element={<AttendanceTablePage />} />
+          <Route path="student" element={<StudentPage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="about" element={<AboutPage />} />
           <Route path="*" element={<NotFound />} />
           <Route index element={<HomePage />} />
         </Route>
