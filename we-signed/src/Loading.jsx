@@ -13,7 +13,7 @@ function Loading({ isLoading }) {
           <div className="flex flex-col items-center">
             {/* Logo */}
             <motion.img
-              src="images/logo.png"
+              src="/images/logo.png"
               alt="WeSigned Logo"
               className="w-32 h-32 md:w-38 md:h-38 mb-4"
               animate={{

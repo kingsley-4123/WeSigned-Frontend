@@ -1,27 +1,27 @@
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
+import { getDataById } from "./db";
 
-const ATTENDANCE_KEY = "studentAttendances";
-
-const loadJSON = (k, fb) => {
-  try {
-    const raw = localStorage.getItem(k);
-    return raw ? JSON.parse(raw) : fb;
-  } catch {
-    return fb;
-  }
-};
 
 export default function AttendanceDetail() {
   const { id } = useParams();
-  const location = useLocation();
   const navigate = useNavigate();
+  const [attendance, setAttendance] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Get attendance either from router state or from localStorage
-  const attendance =
-    location.state ||
-    loadJSON(ATTENDANCE_KEY, []).find((a) => a.id === Number(id));
+  useEffect(() => {
+    async function fetchAttendance() {
+      const data = await getDataById("studentAttendances", id);
+      setAttendance(data);
+      setLoading(false);
+    }
+    fetchAttendance();
+  }, [id]);
+
+  if (loading) {
+    return <p className="p-6 text-gray-600">Loading attendance...</p>;
+  }
 
   if (!attendance) {
     return (

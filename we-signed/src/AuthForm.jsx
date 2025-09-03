@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
-import getOrCreateDeviceId from './util.js';
 import { signup, verifySignup, login, verifyLogin } from './service.js';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,171 +13,210 @@ function AuthForm() {
     email: '',
     password: ''
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const navigate = useNavigate();
 
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-
-  // Still dont how this works
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => { 
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isLogin) {
-      const { firstname, middlename, surname, email, password } = form;
-      if (!firstname || !middlename || !surname || !email || !password) {
-        setError('All fields are required');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
-      
-      let user = { firstname, middlename, surname, email, password };
+    setError('');
+    setLoading(true);
+    setSuccess(false);
 
-      try {
-        const deviceId = await getOrCreateDeviceId();
-        const {data: options} = await signup(user, deviceId);
-        console.log('Options:', options);
-        const registrationResponse = await startRegistration({optionsJSON: options});
-        console.log('Registration Response:', registrationResponse);
+    try {
+      if (!isLogin) {
+        const { firstname, middlename, surname, email, password } = form;
+        if (!firstname || !middlename || !surname || !email || !password) {
+          setError('All fields are required');
+          setLoading(false);
+          return;
+        }
+        if (password !== confirmPassword) {
+          setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+
+        const user = { firstname, middlename, surname, email, password };
+        const { data: options } = await signup(user);
+        const registrationResponse = await startRegistration({ optionsJSON: options });
+
         if (registrationResponse.error) {
           setError(registrationResponse.error);
+          setLoading(false);
           return;
         }
+
         const response = await verifySignup(registrationResponse);
-        console.log('Signup Response:', response);
         if (response.data) {
           localStorage.setItem('token', response.headers['x-auth-token']);
-          navigate('/dashboard');
-        } else {
-          localStorage.removeItem('token');
-        }
-      } catch (error) {
-        console.error(error.response ? error.response.data : console.error(error));
-      }
-
-    } else {
-      const { email, password } = form;
-      if (!email || !password) {
-        setError('Email and Password are required');
-        return;
-      }
-      user = { email, password };
-      try {
-        const {data: options} = await login(email, password);
-        console.log('Login Response:', options);
-        const authResponse = await startAuthentication({ optionsJSON: options });
-        console.log('Authentication Response:', authResponse);
-        if (authResponse.error) { 
-          setError(authResponse.error);
+          setSuccess(true);
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else localStorage.removeItem('token');
+      } else {
+        const { email, password } = form;
+        if (!email || !password) {
+          setError('Email and Password are required');
+          setLoading(false);
           return;
         }
-        const response = await verifyLogin(authResponse);
-        console.log('Verification Response:', response);
-        // Store the token if login is successful
-        console.log('Response Data:', response.data);
 
+        const { data: options } = await login(email, password);
+        const authResponse = await startAuthentication({ optionsJSON: options });
+
+        if (authResponse.error) {
+          setError(authResponse.error);
+          setLoading(false);
+          return;
+        }
+
+        const response = await verifyLogin(authResponse);
         if (response.data) {
           localStorage.setItem('token', response.headers['x-auth-token']);
-          navigate('/dashboard');
-        } else {
-          localStorage.removeItem('token');
-        }
-      }catch (error) {
-          console.error(error.response ? error.response.data : console.error(error));
-        setError(error.response ? error.response.data : 'An error occurred during login');
+          setSuccess(true);
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else localStorage.removeItem('token');
       }
+    } catch (err) {
+      console.error(err.response ? err.response.data : err);
+      setError('Something went wrong!');
     }
-    // Reset form fields after submission
-    setForm({
-      firstname: '',
-      middlename: '',
-      surname: '',
-      email: '',
-      password: ''
-    });
-    setConfirmPassword('');
 
-    // If all validations pass
-    setError(''); // Clear any previous errors
+    setLoading(false);
+    setForm({ firstname: '', middlename: '', surname: '', email: '', password: '' });
+    setConfirmPassword('');
   };
 
-  if (error) {
-    alert(error);
-    setError('');
-  }
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-sky-100 to-indigo-200">
-      <div className="w-full max-w-md bg-white/90 rounded-2xl shadow-2xl p-8">
-        <div className="flex flex-col items-center mb-8">
-          <svg width="60" height="60" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="60" cy="60" r="55" stroke="#4F46E5" strokeWidth="6" fill="#EEF2FF" />
-            <text x="40" y="58" fill="#4F46E5" fontSize="22" fontWeight="bold" fontFamily="'Segoe UI', Arial, sans-serif"></text>
-            <text x="72" y="58" fill="#4F46E5" fontSize="22" fontWeight="bold" fontFamily="'Segoe UI', Arial, sans-serif"></text>
-            <text x="60" y="88" textAnchor="middle" fill="#6366F1" fontSize="20" fontWeight="600" fontFamily="'Segoe UI', Arial, sans-serif">WE SIGN</text>
-          </svg>
+      <motion.div
+        className="w-full max-w-md bg-white/90 rounded-2xl shadow-2xl p-8 relative overflow-hidden"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+      >
+        {/* Loading Spinner Overlay */}
+        <AnimatePresence>
+          {loading && (
+            <motion.div
+              className="absolute inset-0 bg-white/70 flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <Spinner />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Success Check Overlay */}
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              className="absolute inset-0 bg-white/80 flex items-center justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                className="bg-green-100 rounded-full p-6"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-12 w-12 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Logo Section */}
+        <motion.div
+          className="flex flex-col items-center mb-8"
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn}
+          transition={{ delay: 0.2 }}
+        >
+          <img
+            src="/images/logo.png"
+            alt="WeSigned log"
+          className='w-28 h-28 md:w-34 md:h-34 pt-3 -mt-13'/>
           <h2 className="mt-4 text-2xl font-bold text-indigo-500 tracking-wide">
             {isLogin ? 'Welcome Back!' : 'Create an Account'}
           </h2>
-        </div>
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        </motion.div>
+
+        {/* Error Box */}
+        {error && (
+          <motion.div
+            className="mb-4 p-2 text-sm text-red-600 bg-red-100 rounded-lg text-center"
+            initial="hidden"
+            animate="visible"
+            variants={fadeIn}
+          >
+            {error}
+          </motion.div>
+        )}
+
+        {/* Form */}
+        <motion.form
+          className="space-y-5"
+          onSubmit={handleSubmit}
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn}
+          transition={{ delay: 0.3 }}
+        >
           {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">First name</label>
-              <input
-                type="text"
-                name='firstname'
-                className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
-                placeholder="Your Name"
-                value={form.firstname}
-                onChange={handleChange}
-              />
-            </div>
-          )}
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Middle name</label>
-              <input
-                type="text"
-                name="middlename"
-                className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
-                placeholder="Your Middle Name"
-                value={form.middlename}
-                onChange={handleChange}
-              />
-            </div>
-          )}
-          {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Surname</label>
-              <input
-                type="text"
-                name="surname"
-                className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
-                placeholder="Your Surname"
-                value={form.surname}
-                onChange={handleChange}
-              />
-            </div>
+            <>
+              {['firstname', 'middlename', 'surname'].map((field) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-indigo-700 mb-1">
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  <input
+                    type="text"
+                    name={field}
+                    className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
+                    placeholder={`Your ${field}`}
+                    value={form[field]}
+                    onChange={handleChange}
+                  />
+                </div>
+              ))}
+            </>
           )}
           <div>
             <label className="block text-sm font-medium text-indigo-700 mb-1">Email</label>
             <input
               type="email"
-              name='email'
+              name="email"
               className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
               placeholder="you@email.com"
               value={form.email}
-              autoComplete='email'
+              autoComplete="email"
               onChange={handleChange}
             />
           </div>
@@ -185,11 +224,11 @@ function AuthForm() {
             <label className="block text-sm font-medium text-indigo-700 mb-1">Password</label>
             <input
               type="password"
-              name='password'
+              name="password"
               className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
               placeholder="Password"
               value={form.password}
-              autoComplete='current-password'
+              autoComplete="current-password"
               onChange={handleChange}
             />
           </div>
@@ -205,15 +244,24 @@ function AuthForm() {
               />
             </div>
           )}
-          <button
+          <motion.button
             type="submit"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className="w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-400 text-white font-semibold text-lg shadow-md hover:from-indigo-600 hover:to-sky-500 transition-all"
-            onClick={handleSubmit}
           >
             {isLogin ? 'Login' : 'Sign Up'}
-          </button>
-        </form>
-        <div className="mt-6 text-center">
+          </motion.button>
+        </motion.form>
+
+        {/* Switch Auth Mode */}
+        <motion.div
+          className="mt-6 text-center"
+          initial="hidden"
+          animate="visible"
+          variants={fadeIn}
+          transition={{ delay: 0.4 }}
+        >
           <button
             className="text-indigo-600 hover:underline font-medium"
             onClick={() => setIsLogin((prev) => !prev)}
@@ -221,11 +269,22 @@ function AuthForm() {
           >
             {isLogin ? "Don't have an account? Sign Up" : 'Already have an account? Login'}
           </button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
-  )
-  
+  );
 }
+
+
+const Spinner = () => {
+  return (
+    <motion.div
+      className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-500 rounded-full"
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+    />
+  );
+};
+
 
 export default AuthForm;

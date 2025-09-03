@@ -37,7 +37,7 @@ export const login = (email, password) => service.post('/login', { email, passwo
 
 export const verifyLogin = (loginResponse) => service.post('/webauthn/authenticate/verify', { loginResponse }, { withCredentials: true });
 
-export const signup = (user, deviceId) => service.post('/signup', { user, deviceId }, { withCredentials: true });
+export const signup = (user) => service.post('/signup', { user }, { withCredentials: true });
 
 export const verifySignup = (registrationResponse) => service.post('/webauthn/register/verify', { registrationResponse }, { withCredentials: true });
 

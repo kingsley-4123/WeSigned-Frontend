@@ -53,7 +53,13 @@ export default function TimerPage() {
     try {
       const res = await getAttendances(specialId, lecturerId);
       console.log("Fetched attendances:", res.data);
-      navigate("/lecturer", { state: { attendance: res.data.attendanceList } });
+      navigate("/lecturer", {
+        state: {
+          attendance: res.data.attendanceList,
+          specialId,
+          lecturerId
+        }
+      });
     } catch (err) {
       console.error("Error fetching attendances:", err.response ? err.response.data : err);
       alert("Failed to fetch attendance records.");

@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { FaTrash } from "react-icons/fa";
-import {useClearLocationState} from "./ClearLocation"
+import { useClearLocationState } from "./ClearLocation";
 import { motion, AnimatePresence } from "framer-motion";
+import { putData, getAllData, deleteData } from "./db";
 
-/** Storage key */
-const ATTENDANCE_KEY = "studentAttendances";
-
-/** Available gradient classes */
+// Available gradient classes
 const gradients = [
   "from-indigo-500 to-sky-400",
   "from-purple-500 to-pink-400",
@@ -17,60 +15,42 @@ const gradients = [
   "from-teal-500 to-cyan-400",
 ];
 
-/** Helpers */
-const loadJSON = (k, fb) => {
-  try {
-    const raw = localStorage.getItem(k);
-    return raw ? JSON.parse(raw) : fb;
-  } catch {
-    return fb;
-  }
-};
-const saveJSON = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-
 export default function StudentPage() {
-  const [attendances, setAttendances] = useState(() =>
-    loadJSON(ATTENDANCE_KEY, [])
-  );
+  const [attendances, setAttendances] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
   const state = useClearLocationState();
-  const {newAttendance} = state || {};
+  const { newAttendance } = state || {};
+
+  // Load attendances from IndexedDB
+  useEffect(() => {
+    getAllData("studentAttendances").then(setAttendances);
+  }, []);
 
   // Add a new attendance with random gradient
-  const addAttendance = (title, lecturer, date) => {
-    const randomGradient =
-      gradients[Math.floor(Math.random() * gradients.length)];
-
-    const newCard = {
-      id: Date.now(),
-      title,
-      lecturer,
-      date,
-      gradient: randomGradient,
-    };
-    const updated = [newCard, ...attendances];
-    setAttendances(updated);
-    saveJSON(ATTENDANCE_KEY, updated);
-  };
-
-  // Handle navigation state
   useEffect(() => {
     if (newAttendance) {
-      addAttendance(
-        newAttendance.title,
-        newAttendance.lecturer,
-        newAttendance.date
-      );
-      
+      const randomGradient =
+        gradients[Math.floor(Math.random() * gradients.length)];
+
+      const newCard = {
+        title: newAttendance.title,
+        lecturer: newAttendance.lecturer,
+        date: newAttendance.date,
+        gradient: randomGradient,
+      };
+
+      putData("studentAttendances", newCard).then(() => {
+        setAttendances((prev) => [newCard, ...prev]);
+      });
     }
+    // eslint-disable-next-line
   }, [newAttendance]);
 
   // Delete card
-  const deleteAttendance = (id) => {
-    const updated = attendances.filter((a) => a.id !== id);
-    setAttendances(updated);
-    saveJSON(ATTENDANCE_KEY, updated);
+  const deleteAttendance = async (id) => {
+    await deleteData("studentAttendances",id);
+    setAttendances((prev) => prev.filter((a) => a.id !== id));
     setConfirmDelete(null);
   };
 

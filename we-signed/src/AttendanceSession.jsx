@@ -228,7 +228,7 @@ export default function AttendanceSession() {
                             hover:border-green-300 transition duration-200 cursor-pointer
                             ${errors.range ? "border-red-500" : "border-gray-300"}`}
               >
-                {[50, 100, 200, 500, 1000].map((r) => (
+                {[20, 50, 100, 200, 500, 1000].map((r) => (
                   <option key={r} value={String(r)}>
                     {r}
                   </option>
