@@ -9,6 +9,10 @@ export default defineConfig({
     tailwindcss()
   ],
   server: {
+    proxy: {
+      '/api': 'http://localhost:5000'
+    },
+    allowedHosts: ["664e40aa1bfe.ngrok-free.app"],
     port: 3000,
     open: true
   },

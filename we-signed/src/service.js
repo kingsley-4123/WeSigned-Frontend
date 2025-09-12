@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
+
 const service = axios.create({
     baseURL: API_BASE_URL,
     headers: {
@@ -33,7 +34,7 @@ service.interceptors.response.use(
     }
 );
 
-export const login = (email, password) => service.post('/login', { email, password }, { withCredentials: true });
+export const login = (email) => service.post('/login', { email }, { withCredentials: true });
 
 export const verifyLogin = (loginResponse) => service.post('/webauthn/authenticate/verify', { loginResponse }, { withCredentials: true });
 
@@ -47,7 +48,15 @@ export const getAttendanceSession = specialId => service.get(`/attendance-sessio
 
 export const signAttendance = (specialId, studentData) => service.post(`/attendance-sessions/${specialId}/sign`, { ...studentData }, { withCredentials: true });
 
-export const getAttendances = (specialId, lecturerId) => service.get(`attendance/${specialId}/${lecturerId}`, { withCredentials: true }); 
+export const getAttendances = (specialId ) => service.get(`/attendance/${specialId}`, { withCredentials: true }); 
+
+export const sendOTP = (email) => service.post('/otp/send', { email }, { withCredentials: true });
+
+export const verIfyOTP = (email, otp) => service.post('/otp/verify', { email, otp }, { withCredentials: true });
+
+export const reRegister = (email) => service.post('/re-register', { email }, { withCredentials: true });
+
+export const attendanceExport = (type, specialId ) => service.get(`/attendance.${type}/${specialId}`, { responseType: "blob" });
 
 export const getUserProfile = () => {
     return service.get('/auth/profile')

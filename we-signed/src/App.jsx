@@ -8,7 +8,8 @@ import WelcomePage from './WelcomePage';
 import AboutPage from './AboutPage';
 import StudentPage from './StudentPage';
 import ContactPage from './ContactPage';
-import AttendanceTablePage from './LecturerPage';
+import AttendanceTablePage from './lecturerViewPage';
+import LecturerPage from './LecturerPage';
 import AttendanceDetail from './AttendanceDetail';
 import NotFound from './PageNotFound';
 import DashboardLayout from './DashboardLayout';
@@ -35,6 +36,7 @@ function App() {
           <Route path="student/attendance/:id" element={<AttendanceDetail />} />
           <Route path="student/attendance" element={<AttendancePage />} />
           <Route path="lecturer/timer" element={<TimerPage />} />
+          <Route path="lecturer-page" element={ <LecturerPage />} />
           <Route path="lecturer" element={<AttendanceTablePage />} />
           <Route path="student" element={<StudentPage />} />
           <Route path="contact" element={<ContactPage />} />

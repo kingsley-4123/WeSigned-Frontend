@@ -1,133 +1,158 @@
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FaTrash } from "react-icons/fa";
 import { useClearLocationState } from "./ClearLocation";
-import axios from "axios";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { putData, getAllData, deleteData } from "./db";
 
-export default function AttendanceTablePage() {
+// Available gradient classes
+const gradients = [
+  "from-indigo-500 to-sky-400",
+  "from-purple-500 to-pink-400",
+  "from-green-500 to-emerald-400",
+  "from-orange-500 to-yellow-400",
+  "from-rose-500 to-red-400",
+  "from-teal-500 to-cyan-400",
+];
+
+export default function LecturerPage() {
+  const [attendances, setAttendances] = useState([]);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
   const state = useClearLocationState();
-  const { attendance, specialId, lecturerId } = state || {};
-  const [loadingFile, setLoadingFile] = useState(null); // "pdf" | "excel" | null
+  const { specialId, attendanceName, lecturer, date } = state || {};
 
-  // Example data — replace with API response
-  const students = [
-    { id: 1, name: "John Doe", studentId: "STU123", signedAt: "2025-08-23 10:00" },
-    { id: 2, name: "Jane Smith", studentId: "STU456", signedAt: "2025-08-23 10:05" },
-    { id: 3, name: "Michael Lee", studentId: "STU789", signedAt: "2025-08-23 10:10" },
-  ];
+  // Load attendances from IndexedDB
+  useEffect(() => {
+    getAllData("lecturerView").then(setAttendances);
+  }, []);
 
-  // Download handler with axios
-  const handleDownload = async (type) => {
-    try {
-      setLoadingFile(type);
-      const res = await axios.get(
-        `http://localhost:5000/api/attendance.${type}/${lecturerId}/${specialId}`,
-        { responseType: "blob" }
-      );
+  // Add a new attendance with random gradient
+  useEffect(() => {
+    if (state.attendanceName) {
+      const randomGradient =
+        gradients[Math.floor(Math.random() * gradients.length)];
 
-       console.log("All headers:", res.headers);
+      const newCard = {
+        title: attendanceName,
+        lecturer,
+        date,
+        gradient: randomGradient,
+        specialId
+      };
 
-    // Log only the Content-Disposition header
-    console.log("Content-Disposition:", res.headers["content-disposition"]);
-
-    // Your existing filename logic
-    let fileName = `attendance.${type}`;
-    const disposition = res.headers["content-disposition"];
-    if (disposition) {
-      const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-      if (match && match[1]) {
-        fileName = match[1].replace(/['"]/g, "");
-      }
+      putData("lecturerView", newCard).then(() => {
+        setAttendances((prev) => [newCard, ...prev]);
+      });
     }
+    // eslint-disable-next-line
+  }, [state.attendanceName]);
 
-    console.log("Final filename:", fileName);
-
-      // Create blob link for download
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      alert("❌ Download failed. Please try again.");
-      console.error(err);
-    } finally {
-      setLoadingFile(null);
-    }
+  // Delete card
+  const deleteAttendance = async (id) => {
+    await deleteData("lecturerView",id);
+    setAttendances((prev) => prev.filter((a) => a.id !== id));
+    setConfirmDelete(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      {/* Header + Buttons */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-2xl font-bold text-gray-700"
-        >
-          Attendance Records
-        </motion.h1>
-
-        {/* Download Buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={() => handleDownload("xlsx")}
-            disabled={loadingFile === "xlsx"}
-            className={`px-4 py-2 rounded-lg shadow text-white transition ${
-              loadingFile === "xlsx"
-                ? "bg-green-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-            }`}
-          >
-            {loadingFile === "xlsx" ? "Generating..." : "Download Excel"}
-          </button>
-          <button
-            onClick={() => handleDownload("pdf")}
-            disabled={loadingFile === "pdf"}
-            className={`px-4 py-2 rounded-lg shadow text-white transition ${
-              loadingFile === "pdf"
-                ? "bg-red-400 cursor-not-allowed"
-                : "bg-red-600 hover:bg-red-700"
-            }`}
-          >
-            {loadingFile === "pdf" ? "Generating..." : "Download PDF"}
-          </button>
-        </div>
+    <div className="relative p-6">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">My Collected Attendances</h1>
       </div>
 
-      {/* Attendance Table */}
-      <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
-        <table className="w-full text-left border-collapse">
-          <thead className="bg-gray-200 text-gray-700">
-            <tr>
-              <th className="px-6 py-3">#</th>
-              <th className="px-6 py-3">Name</th>
-              <th className="px-6 py-3">Student ID</th>
-              <th className="px-6 py-3">Signed At</th>
-            </tr>
-          </thead>
-          <tbody>
-            {students.map((s, i) => (
-              <motion.tr
-                key={s.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.1 }}
-                className="border-b hover:bg-gray-50"
+      {/* Cards */}
+      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+        {attendances.map((att) => (
+          <div
+            key={att.id}
+            className="relative rounded-xl shadow-lg overflow-hidden group"
+          >
+            {/* Delete Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                setConfirmDelete(att.id);
+              }}
+              className="absolute top-2 right-2 bg-white p-2 rounded-full shadow-md opacity-0 group-hover:opacity-100 transition"
+              title="Delete"
+            >
+              <FaTrash className="text-red-500 hover:text-red-700" />
+            </button>
+
+            {/* Card */}
+            <Link
+              to={`lecturer`}
+              state={
+                {obj: "lecturerPage", reViewData: {reViewId: att.specialId, reViewName: attendanceName}}
+              }
+              className="block"
+            >
+              {/* Gradient top with title */}
+              <div
+                className={`h-32 bg-gradient-to-r ${att.gradient} flex items-center justify-start`}
               >
-                <td className="px-6 py-3">{i + 1}</td>
-                <td className="px-6 py-3">{s.name}</td>
-                <td className="px-6 py-3">{s.studentId}</td>
-                <td className="px-6 py-3">{s.signedAt}</td>
-              </motion.tr>
-            ))}
-          </tbody>
-        </table>
+                <h1 className="text-white text-lg font-semibold px-2">
+                  {att.title}
+                </h1>
+              </div>
+
+              {/* White bottom with lecturer + date */}
+              <div className="flex justify-between items-center px-4 py-5 bg-white">
+                <span className="text-sm text-gray-700 font-medium">
+                  {att.lecturer}
+                </span>
+                <span className="text-sm text-gray-500">{att.date}</span>
+              </div>
+            </Link>
+          </div>
+        ))}
+
+        {attendances.length === 0 && (
+          <p className="text-gray-500 col-span-full text-center">
+            No attendance signed yet.
+          </p>
+        )}
       </div>
+
+      {/* Confirm Delete Modal */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white rounded-xl shadow-xl p-6 w-80 text-center"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <h2 className="text-lg font-semibold mb-4">
+                Delete this attendance?
+              </h2>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => deleteAttendance(confirmDelete)}
+                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                >
+                  Yes, Delete
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

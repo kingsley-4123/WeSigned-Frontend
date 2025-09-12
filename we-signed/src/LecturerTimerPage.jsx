@@ -6,14 +6,14 @@ import { useClearLocationState } from "./ClearLocation";
 
 export default function TimerPage() {
   const state = useClearLocationState();
-  const { attSession } = state || {};
-  const { specialId, lecturerId, duration } = attSession || {
-    specialId: null,
-    lecturerId: null,
-    duration: 0,
+  const { attSession, lecturer, date } = state || {};
+  const { lecturer_id, special_id, duration, attendance_name } = attSession || {
+    lecturer_id: null,
+    special_id: null,
+    duration: 0
   };
 
-   if (!specialId || !lecturerId) {
+   if (!lecturer_id || !special_id) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <p className="text-red-500 text-lg">No active attendance session found.</p>
@@ -51,13 +51,18 @@ export default function TimerPage() {
   // Navigate to table
   const handleGetAttendance = async () => {
     try {
-      const res = await getAttendances(specialId, lecturerId);
+      const res = await getAttendances(special_id );
       console.log("Fetched attendances:", res.data);
       navigate("/lecturer", {
         state: {
-          attendance: res.data.attendanceList,
-          specialId,
-          lecturerId
+          obj: "lecturerTimer",
+          timerData: {
+            attendance: res.data.attendanceList,
+            special_id,
+            attendance_name,
+            lecturer,
+            date
+          }
         }
       });
     } catch (err) {
@@ -70,6 +75,7 @@ export default function TimerPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
+
       <motion.div
         className={`relative flex items-center justify-center rounded-full border-[12px] ${color}`}
         style={{
@@ -81,8 +87,10 @@ export default function TimerPage() {
         transition={{ repeat: Infinity, duration: 1.5 }}
       >
         {/* Time Text */}
-        <span className="text-4xl font-bold">{timeLeft}s</span>
+        <span className="text-4xl font-bold z-10">{timeLeft}s</span>
       </motion.div>
+      
+      <div className="text-2xl font-bold ">{special_id}</div>
 
       {isFinished && (
         <motion.button

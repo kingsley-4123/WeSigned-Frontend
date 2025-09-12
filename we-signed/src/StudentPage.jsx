@@ -82,7 +82,7 @@ export default function StudentPage() {
 
             {/* Card */}
             <Link
-              to={`/student/attendance/${att.id}`}
+              to={`student/attendance/${att.id}`}
               state={att}
               className="block"
             >

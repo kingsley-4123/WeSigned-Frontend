@@ -65,9 +65,10 @@ export default function AttendanceSession() {
     createAttendanceSession(payload)
       .then((res) => {
         console.log("Created session:", res.data);
-        toast.success("Attendance session created!");
-        const attSession = res.data.attSession;
-        navigate("/lecturer/timer", { state: { attSession} });  
+        toast.success(res.data.message);
+        const { attSession, lecturer, date } = res.data;
+        alert(`Your Attendance Session ID is ${attSession.special_id}. Share it with your students.`);
+        navigate("/lecturer/timer", { state: {attSession, lecturer, date} });  
         
       })
       .catch((err) => {

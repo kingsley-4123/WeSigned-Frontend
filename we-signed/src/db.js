@@ -4,7 +4,7 @@ const DB_NAME = "WeSignedDB";
 const DB_VERSION = 1; // bump this whenever you add a new store
 
 // List all stores here
-const STORES = ["studentAttendances", "user"];
+const STORES = ["studentAttendances", "user", "lecturerView"];
 
 export async function getDB() {
   return openDB(DB_NAME, DB_VERSION, {
@@ -34,8 +34,8 @@ export async function getAllData(storeName) {
 
 // Get a record by id.
 export async function getDataById(storeName, id) {
-    const db = await getDB();
-    return db.get(storeName, id);
+  const db = await getDB();
+  return db.get(storeName, id);
 }
 
 // Delete a record by ID from a store.

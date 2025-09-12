@@ -84,7 +84,7 @@ export default function AttendancePage() {
       const res = await signAttendance(specialId, data);
       if(!res.data.success) toast.error(res.data.message || "Failed to sign attendance. Try again.");
       console.log("Signed attendance:", res.data);  
-      toast.success("Attendance signed successfully!");
+      toast.success(res.data.message);
       const { title, lecturer, date } = res.data.student;
       navigate("/student", {
         state: {
