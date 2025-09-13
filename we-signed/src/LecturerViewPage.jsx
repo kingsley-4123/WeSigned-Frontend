@@ -142,7 +142,7 @@ export default function AttendanceTablePage() {
                 <td className="px-6 py-3">{i + 1}</td>
                 <td className="px-6 py-3">{s.full_name}</td>
                 <td className="px-6 py-3">{s.matric_no}</td>
-                <td className="px-6 py-3">{s.createdAt.toISOString()}</td>
+                <td className="px-6 py-3">{s.signedAt.toISOString()}</td>
               </motion.tr>
             ))}
           </tbody>
