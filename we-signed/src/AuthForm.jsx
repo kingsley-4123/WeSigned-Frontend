@@ -36,8 +36,8 @@ function AuthForm() {
     setLoading(true);
     setSuccess(false);
 
-    try {
-      if (!isLogin) {
+    if (!isLogin) {
+      try {
         const { firstname, middlename, surname, email, password } = form;
         if (!firstname || !middlename || !surname || !email || !password) {
           setError('All fields are required');
@@ -55,7 +55,7 @@ function AuthForm() {
         const result = signupRes.data.options;
         
         console.log("Options", signupRes);
-        const registrationResponse = await startRegistration({optionsJSON:result});
+        const registrationResponse = await startRegistration({ optionsJSON: result });
         console.log("regRes", registrationResponse);
         if (registrationResponse.error) {
           setError(registrationResponse.error);
@@ -69,45 +69,46 @@ function AuthForm() {
           setSuccess(true);
           setTimeout(() => navigate('/dashboard'), 1500);
         } else localStorage.removeItem('token');
-      } else {
-        const { email, password } = form;
-        if (!email || !password) {
-          setError('Email and Password are required');
+      } catch (err) {
+        console.error(err.response ? err.response.data : err);
+        setError('Something went wrong!');
+      }
+    } else {
+      const { email } = form;
+      if (!email) {
+        setError('Email is required');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const loginRes = await login(email);
+        const result = loginRes.data.authOptions;
+        console.log('authOptions', result);
+        const authResponse = await startAuthentication({ optionsJSON: result });
+        console.log('authResponse', authResponse);
+        if (authResponse.error) {
+          setError(authResponse.error);
           setLoading(false);
           return;
         }
 
-        try {
-          const loginRes = await login(email);
-          const result = loginRes.data.authOptions;
-          const authResponse = await startAuthentication({ optionsJSON: result });
-          if (authResponse.error) {
-            setError(authResponse.error);
-            setLoading(false);  
-            return;
-          }
-
-          const response = await verifyLogin(authResponse);
-          if (response.data) {
-            localStorage.setItem('token', response.headers['x-auth-token']);
-            setSuccess(true);
-            setTimeout(() => navigate('/dashboard'), 1500);
-          } else localStorage.removeItem('token');
-        } catch (err) {
-          if (err.name === "NotAllowedError") {
-              setShowFallback(true); // Show popup
-              toast.error("wait something is wrong.");
-            } else {
-              console.error("Unexpected error:", err);
-              toast.error("Unexpected error");
-          }
-        }        
+        const response = await verifyLogin(authResponse);
+        if (response.data) {
+          localStorage.setItem('token', response.headers['x-auth-token']);
+          setSuccess(true);
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else localStorage.removeItem('token');
+      } catch (err) {
+        if (err.name === "NotAllowedError") {
+          setShowFallback(true); // Show popup
+          toast.error("wait something is wrong.");
+        } else {
+          console.error("Unexpected error:", err);
+          toast.error("Unexpected error");
+        }
       }
-    } catch (err) {
-      console.error(err.response ? err.response.data : err);
-      setError('Something went wrong!');
     }
-
     setLoading(false);
     setForm({ firstname: '', middlename: '', surname: '', email: '', password: '' });
     setConfirmPassword('');
@@ -153,12 +154,12 @@ function AuthForm() {
   const handleVerifyOtp = async () => {
     try {
       const otpValue = otp.join("");
-      const { email } = form.email;
-      const res = await verIfyOTP(email, otpValue);
+      console.log(`OTP: ${otpValue}`);
+      const res = await verIfyOTP(otpValue);
       console.log(res);
       if (res.data.success) {
         toast.success(res.data.message);
-        const reReg = await reRegister(email);
+        const reReg = await reRegister(res.data.email);
         const result = reReg.data.options;
         console.log("Options", result);
 
@@ -180,7 +181,7 @@ function AuthForm() {
         toast.error("Code verification failed.");
       }
     }catch(err){
-      toast.err("Something is wrong.");
+      toast.error("Something is wrong.");
       setError("Something is wrong.")
       console.log(err);
     }
@@ -276,6 +277,7 @@ function AuthForm() {
         <motion.form
           className="space-y-5"
           onSubmit={handleSubmit}
+          autoComplete="off"
           initial="hidden"
           animate="visible"
           variants={fadeIn}
@@ -316,10 +318,11 @@ function AuthForm() {
             <div>
               <label className="block text-sm font-medium text-indigo-700 mb-1">Password</label>
               <PasswordInput
+                name="password"
                 placeholder='Password'
                 value={form.password}
-                autoComplete="current-password"
                 onChange={handleChange}
+                autoComplete="new-password"
               />
             </div>
           )}
@@ -332,6 +335,7 @@ function AuthForm() {
                 placeholder="Confirm Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
               />
             </div>
           )}
@@ -339,7 +343,7 @@ function AuthForm() {
             type="submit"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-400 text-white font-semibold text-lg shadow-md hover:from-indigo-600 hover:to-sky-500 transition-all"
+            className="w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-400 text-white font-semibold text-lg shadow-md hover:from-indigo-600 hover:to-sky-500 transition-all hover:cursor-pointer"
           >
             {isLogin ? 'Login With Passkey' : 'Sign Up'}
           </motion.button>
@@ -354,7 +358,7 @@ function AuthForm() {
           transition={{ delay: 0.4 }}
         >
           <button
-            className="text-indigo-600 hover:underline font-medium"
+            className="text-indigo-600 hover:underline font-medium cursor-pointer"
             onClick={() => setIsLogin((prev) => !prev)}
             type="button"
           >
@@ -389,18 +393,22 @@ function AuthForm() {
                 <span className='text-sm text-indigo-500'>{!showOtpInput ? "Enter your Email to proceed." : ""}</span>
               </p>
 
-              <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Email</label>
-              <input
-                type="email"
-                name="email"
-                className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
-                placeholder="you@email.com"
-                value={form.email}
-                autoComplete="email"
-                onChange={handleChange}
-              />
-              </div>
+              
+              {!showOtpInput && (
+                <div> 
+                  <label className="block text-sm font-medium text-indigo-700 mb-1">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    className="w-full px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900"
+                    placeholder="you@email.com"
+                    value={form.email}
+                    autoComplete="email"
+                    onChange={handleChange}
+                  />
+                </div> 
+              )}  
+              
 
               {/* Multi-digit OTP Input */}
               {showOtpInput && (
@@ -424,7 +432,7 @@ function AuthForm() {
 
               <button
                 onClick={!showOtpInput ? handleSendOtp : handleVerifyOtp}
-                className="bg-green-500 text-white px-4 py-2 rounded-lg w-full"
+                className="bg-green-500 mt-2 text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer"
               >
                 { showOtpInput ? "verify code" : "verify email"}
               </button>

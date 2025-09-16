@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+//'http://10.154.178.217:5000/api' 'http://localhost:5000/api' || ;
+
 const API_BASE_URL = '/api';
 
 const service = axios.create({
@@ -36,11 +38,11 @@ service.interceptors.response.use(
 
 export const login = (email) => service.post('/login', { email }, { withCredentials: true });
 
-export const verifyLogin = (loginResponse) => service.post('/webauthn/authenticate/verify', { loginResponse }, { withCredentials: true });
+export const verifyLogin = (loginResponse) => service.post('/login/webauthn/authenticate/verify', { loginResponse }, { withCredentials: true });
 
 export const signup = (user) => service.post('/signup', { user }, { withCredentials: true });
 
-export const verifySignup = (registrationResponse) => service.post('/webauthn/register/verify', { registrationResponse }, { withCredentials: true });
+export const verifySignup = (registrationResponse) => service.post('/signup/webauthn/register/verify', { registrationResponse }, { withCredentials: true });
 
 export const createAttendanceSession = payload => service.post('/attendance-sessions', { payload}, { withCredentials: true })
 
@@ -52,7 +54,7 @@ export const getAttendances = (specialId ) => service.get(`/attendance/${special
 
 export const sendOTP = (email) => service.post('/otp/send', { email }, { withCredentials: true });
 
-export const verIfyOTP = (email, otp) => service.post('/otp/verify', { email, otp }, { withCredentials: true });
+export const verIfyOTP = (otp) => service.post('/otp/verify', { otp }, { withCredentials: true });
 
 export const reRegister = (email) => service.post('/re-register', { email }, { withCredentials: true });
 

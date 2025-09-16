@@ -5,7 +5,7 @@ export default function PasswordInput({placeholder = 'Enter password', ...props}
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <div className='relative w-fuull max-w-sm'>
+        <div className='relative w-full'>
             <input type={showPassword ? 'text' : 'password'}
                 placeholder={placeholder}
                 className='w-full rounded-xl border border-gray-300 p-2 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-blue-500 bg-indigo-50' {...props} />
