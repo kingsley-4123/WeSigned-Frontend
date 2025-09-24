@@ -111,7 +111,7 @@ export default function DashboardLayout() {
                   <span>Home</span>
                 </NavLink>
                 <NavLink
-                  to="/student"
+                  to="student"
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -119,7 +119,7 @@ export default function DashboardLayout() {
                   <span>Student</span>
                 </NavLink>
                 <NavLink
-                  to="/lecturer"
+                  to="lecturer"
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -127,7 +127,7 @@ export default function DashboardLayout() {
                   <span>Lecturer</span>
                 </NavLink>
                 <NavLink
-                  to="/about"
+                  to="about"
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -135,7 +135,7 @@ export default function DashboardLayout() {
                   <span>About</span>
                 </NavLink>
                 <NavLink
-                  to="/contact"
+                  to="contact"
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >

@@ -38,6 +38,7 @@ export default function StudentPage() {
         lecturer: newAttendance.lecturer,
         date: newAttendance.date,
         gradient: randomGradient,
+        status: "online"
       };
 
       putData("studentAttendances", newCard).then(() => {

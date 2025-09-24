@@ -3,6 +3,7 @@ import { createAttendanceSession } from "./service";
 import getCurrentLocation from "./location";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
+import { putData } from "./db";
 import { useNavigate } from "react-router-dom";
 import { FaClock, FaRulerCombined, FaCheck } from "react-icons/fa";
 
@@ -68,7 +69,7 @@ export default function AttendanceSession() {
         toast.success(res.data.message);
         const { attSession, lecturer, date } = res.data;
         alert(`Your Attendance Session ID is ${attSession.special_id}. Share it with your students.`);
-        navigate("/lecturer/timer", { state: {attSession, lecturer, date} });  
+        navigate("lecturer/timer", { state: {attSession, lecturer, date} });  
         
       })
       .catch((err) => {
@@ -99,19 +100,19 @@ export default function AttendanceSession() {
 
   return (
     <motion.div
-      className="min-h-screen flex items-center justify-center bg-gray-100 p-6"
+      className="min-h-screen flex items-center justify-center bg-gray-100 px-2 sm:px-4 py-6"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
       <motion.div
-        className="w-full max-w-lg bg-white rounded-2xl shadow-lg p-8 transition hover:shadow-xl"
+        className="w-full max-w-md sm:max-w-lg bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 transition hover:shadow-xl"
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
       >
-        <h1 className="text-2xl font-bold text-center mb-6">Create Attendance Session</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Create Attendance Session</h1>
 
-        <motion.form onSubmit={handleSubmit} className="space-y-5" variants={containerVariants}>
+        <motion.form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" variants={containerVariants}>
           {/* Attendance Name */}
           <motion.div variants={itemVariants}>
             <label className="block text-sm font-medium mb-2" htmlFor="attendanceName">

@@ -1,8 +1,10 @@
 import React, { useState, useRef} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { putData } from './db.js';
 import { signup, verifySignup, login, verifyLogin, sendOTP, verIfyOTP, reRegister } from './service.js';
 import { useNavigate } from 'react-router-dom';
+import { encryptText } from './cryptoUtils.js';
 import toast from 'react-hot-toast';
 import PasswordInput from './PasswordComponent.jsx';
 
@@ -53,6 +55,7 @@ function AuthForm() {
         const user = { firstname, middlename, surname, email, password };
         const signupRes = await signup(user);
         const result = signupRes.data.options;
+        const userId = signupRes.data.userID;
         
         console.log("Options", signupRes);
         const registrationResponse = await startRegistration({ optionsJSON: result });
@@ -65,6 +68,8 @@ function AuthForm() {
 
         const response = await verifySignup(registrationResponse);
         if (response.data) {
+          user.userId = encryptText(userId);
+          await putData('user', user);
           localStorage.setItem('token', response.headers['x-auth-token']);
           setSuccess(true);
           setTimeout(() => navigate('/dashboard'), 1500);

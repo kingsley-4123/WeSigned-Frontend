@@ -50,7 +50,7 @@ export const getAttendanceSession = specialId => service.get(`/attendance-sessio
 
 export const signAttendance = (specialId, studentData) => service.post(`/attendance-sessions/${specialId}/sign`, { ...studentData }, { withCredentials: true });
 
-export const getAttendances = (specialId ) => service.get(`/attendance/${specialId}`, { withCredentials: true }); 
+export const getAttendances = (specialId) => service.get(`/attendance/${specialId}`, { withCredentials: true }); 
 
 export const sendOTP = (email) => service.post('/otp/send', { email }, { withCredentials: true });
 
@@ -59,6 +59,8 @@ export const verIfyOTP = (otp) => service.post('/otp/verify', { otp }, { withCre
 export const reRegister = (email) => service.post('/re-register', { email }, { withCredentials: true });
 
 export const attendanceExport = (type, specialId ) => service.get(`/attendance.${type}/${specialId}`, { responseType: "blob" });
+
+export const getSyncedAttendance = (specialId, attendanceName) => service.get(`/sync/${specialId}/${attendanceName}`, { withCredentials: true });
 
 export const getUserProfile = () => {
     return service.get('/auth/profile')

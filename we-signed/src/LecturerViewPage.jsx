@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useClearLocationState } from "./ClearLocation";
 import { useNavigate } from "react-router-dom";
-import { attendanceExport, getAttendances } from "./service";
+import { attendanceExport, getAttendances, getSyncedAttendance, exportOfflineAttendance } from "./service";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
 
@@ -13,7 +13,7 @@ export default function AttendanceTablePage() {
   const state = useClearLocationState();
   const newData1 = state.obj === 'lecturerPage' ? state.reViewData : {};
   const newData2 = state.obj === 'lecturerTimer' ? state.timerData : {};
-  const { reViewId, reViewName } = newData1;
+  const { reViewId, reViewName, reViewStatus } = newData1;
   const { special_id, attendance, attendance_name, lecturer, date } = newData2;
   
   const navigator = useNavigate();
@@ -27,51 +27,53 @@ export default function AttendanceTablePage() {
 
   // Download handler with axios
   const handleDownload = async (type) => {
-    if (newData1) setIsAttendance(true);
-    const newId = isAttendance ? reViewId : special_id;
-
+    setLoadingFile(type);
     try {
-      setLoadingFile(type);
-      if (isAttendance) {
-        const res = await getAttendances(newId);
+      let fileName = "";
+      let blobData = null;
+
+      if (reViewStatus === "offline") {
+        // Fetch offline attendance for table
+        const res = await getSyncedAttendance(reViewId, reViewName);
         setNewAttendance(res.data.attendanceList);
-        toast.success("Attendance fetched.");
+        toast.success("Offline attendance fetched.");
+        if (res.error) return toast.error("Error fetching offline attendance.");
 
-        if(res.error) return toast.error("Error fetching attendance.")
-      }
-
-      const res = await attendanceExport(type, newId );
-
-      console.log("All headers:", res.headers);
-
-      // Log only the Content-Disposition header
-      console.log("Content-Disposition:", res.headers["content-disposition"]);
-
-      // Your existing filename logic
-      let fileName = `${isAttendance ? reViewName : attendance_name}.${type}`;
-      const disposition = res.headers["content-disposition"];
-      if (disposition) {
-        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (match && match[1]) {
-          fileName = match[1].replace(/['"]/g, "");
+        // Export offline attendance (assumes exportOfflineAttendance exists)
+        const exportRes = await exportOfflineAttendance(type, reViewId, reViewName);
+        blobData = exportRes.data;
+        fileName = `${reViewName}.${type}`;
+        const disposition = exportRes.headers["content-disposition"];
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match && match[1]) {
+            fileName = match[1].replace(/['"]/g, "");
+          }
+        }
+      } else {
+        // Online export
+        const res = await attendanceExport(type, reViewId);
+        blobData = res.data;
+        fileName = `${reViewName}.${type}`;
+        const disposition = res.headers["content-disposition"];
+        if (disposition) {
+          const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+          if (match && match[1]) {
+            fileName = match[1].replace(/['"]/g, "");
+          }
         }
       }
 
-      console.log("Final filename:", fileName);
-
-      // Create blob link for download
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", fileName);
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      navigator('/lecturer-page', { state: { specialId: special_id, attendanceName: attendance_name, lecturer, date } });
+      if (blobData) {
+        const url = window.URL.createObjectURL(new Blob([blobData]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", fileName);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+      }
     } catch (err) {
       alert("❌ Download failed. Please try again.");
       console.error(err);
@@ -81,19 +83,19 @@ export default function AttendanceTablePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
+    <div className="min-h-screen bg-gray-100 px-2 sm:px-4 py-6">
       {/* Header + Buttons */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
         <motion.h1
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-2xl font-bold text-gray-700"
+          className="text-xl sm:text-2xl font-bold text-gray-700"
         >
           Attendance Records
         </motion.h1>
 
         {/* Download Buttons */}
-        <div className="flex gap-3">
+  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
           <button
             onClick={() => handleDownload("xlsx")}
             disabled={loadingFile === "xlsx"}
@@ -120,14 +122,14 @@ export default function AttendanceTablePage() {
       </div>
 
       {/* Attendance Table */}
-      <div className="overflow-x-auto bg-white shadow-lg rounded-lg">
-        <table className="w-full text-left border-collapse">
+      <div className="overflow-x-auto bg-white shadow-lg rounded-lg mt-4">
+        <table className="min-w-[420px] w-full text-left border-collapse text-sm sm:text-base">
           <thead className="bg-gray-200 text-gray-700">
             <tr>
-              <th className="px-6 py-3">#</th>
-              <th className="px-6 py-3">Name</th>
-              <th className="px-6 py-3">Student ID</th>
-              <th className="px-6 py-3">Signed At</th>
+              <th className="px-3 sm:px-6 py-2 sm:py-3">#</th>
+              <th className="px-3 sm:px-6 py-2 sm:py-3">Name</th>
+              <th className="px-3 sm:px-6 py-2 sm:py-3">Student ID</th>
+              <th className="px-3 sm:px-6 py-2 sm:py-3">Signed At</th>
             </tr>
           </thead>
           <tbody>
@@ -139,10 +141,10 @@ export default function AttendanceTablePage() {
                 transition={{ delay: i * 0.1 }}
                 className="border-b hover:bg-gray-50"
               >
-                <td className="px-6 py-3">{i + 1}</td>
-                <td className="px-6 py-3">{s.full_name}</td>
-                <td className="px-6 py-3">{s.matric_no}</td>
-                <td className="px-6 py-3">{s.signedAt.toISOString()}</td>
+                <td className="px-3 sm:px-6 py-2 sm:py-3">{i + 1}</td>
+                <td className="px-3 sm:px-6 py-2 sm:py-3">{s.full_name}</td>
+                <td className="px-3 sm:px-6 py-2 sm:py-3">{s.matric_no}</td>
+                <td className="px-3 sm:px-6 py-2 sm:py-3">{s.signedAt.toISOString()}</td>
               </motion.tr>
             ))}
           </tbody>

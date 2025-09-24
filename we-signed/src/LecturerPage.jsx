@@ -29,7 +29,7 @@ export default function LecturerPage() {
 
   // Add a new attendance with random gradient
   useEffect(() => {
-    if (state.attendanceName) {
+    if (attendanceName) {
       const randomGradient =
         gradients[Math.floor(Math.random() * gradients.length)];
 
@@ -38,7 +38,8 @@ export default function LecturerPage() {
         lecturer,
         date,
         gradient: randomGradient,
-        specialId
+        specialId,
+        status: "online"
       };
 
       putData("lecturerView", newCard).then(() => {
@@ -46,7 +47,7 @@ export default function LecturerPage() {
       });
     }
     // eslint-disable-next-line
-  }, [state.attendanceName]);
+  }, [attendanceName]);
 
   // Delete card
   const deleteAttendance = async (id) => {
@@ -85,7 +86,7 @@ export default function LecturerPage() {
             <Link
               to={`lecturer`}
               state={
-                {obj: "lecturerPage", reViewData: {reViewId: att.specialId, reViewName: attendanceName}}
+                {obj: "lecturerPage", reViewData: {reViewId: att.specialId, reViewName: att.title, reViewStatus: att.status}}
               }
               className="block"
             >

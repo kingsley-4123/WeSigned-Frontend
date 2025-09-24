@@ -21,17 +21,14 @@ export default function AttendancePage() {
   const [timeLeft, setTimeLeft] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-    
   const navigate = useNavigate();
 
   // Countdown effect
   useEffect(() => {
     if (!timeLeft || timeLeft <= 0) return;
-
     const interval = setInterval(() => {
       setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
-
     return () => clearInterval(interval);
   }, [timeLeft]);
 
@@ -86,7 +83,7 @@ export default function AttendancePage() {
       console.log("Signed attendance:", res.data);  
       toast.success(res.data.message);
       const { title, lecturer, date } = res.data.student;
-      navigate("/student", {
+      navigate("student", {
         state: {
           newAttendance: {
             title, lecturer, date
@@ -106,33 +103,31 @@ export default function AttendancePage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1 }}
-      className="min-h-screen flex items-center justify-center bg-gray-50 px-4"
+      className="min-h-screen flex items-center justify-center bg-gray-50 px-2 sm:px-4"
     >
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, delay: 0.2 }}
-        className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8"
+        className="w-full max-w-md sm:max-w-lg bg-white rounded-2xl shadow-xl p-4 sm:p-6 md:p-8"
       >
-        <h1 className="text-2xl font-bold text-center text-blue-600 mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold text-center text-blue-600 mb-4 sm:mb-6">
           Student Attendance
         </h1>
 
         {/* Search Input */}
-        <div className="flex space-x-2 mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 mb-4 sm:mb-6">
           <input
             type="text"
             value={specialId}
             onChange={(e) => setSpecialId(e.target.value)}
             placeholder="Enter Attendance Special ID"
-                      className="flex-grow px-4 py-2 border rounded-lg hover:border-blue-300 transition duration-200
-            focus:ring-2 focus:ring-blue-400 outline-none"
+            className="flex-grow px-3 py-2 border rounded-lg hover:border-blue-300 transition duration-200 focus:ring-2 focus:ring-blue-400 outline-none text-sm sm:text-base"
           />
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={handleSearch}
-                      className="shadow-md bg-gradient-to-r from-indigo-500 to-sky-400 hover:from-indigo-500 hover:to-sky-400 text-white px-4 py-2 rounded-lg flex items-center active:scale-95 
-            transition duration-200 cursor-pointer"
+            className="shadow-md bg-gradient-to-r from-indigo-500 to-sky-400 hover:from-indigo-500 hover:to-sky-400 text-white px-4 py-2 rounded-lg flex items-center active:scale-95 transition duration-200 cursor-pointer text-sm sm:text-base"
           >
             <FaSearch className="mr-2" />
             Search
@@ -201,7 +196,7 @@ export default function AttendancePage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -30 }}
                   transition={{ duration: 0.6 }}
-                  className="space-y-4"
+                  className="space-y-3 sm:space-y-4"
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
@@ -211,21 +206,19 @@ export default function AttendancePage() {
                       type="text"
                       name="fullName"
                       required
-                                          className="w-full px-4 py-2 border rounded-lg focus:ring-2
-                       focus:ring-blue-400 outline-none hover:border-blue-300 transition duration-200"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none hover:border-blue-300 transition duration-200 text-sm sm:text-base"
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700">
-                      Matric No
+                      Reg No
                     </label>
                     <input
                       type="text"
                       name="matricNo"
                       required
-                                          className="w-full px-4 py-2 border rounded-lg focus:ring-2
-                       focus:ring-blue-400 outline-none hover:border-blue-300 transition duration-200"
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none hover:border-blue-300 transition duration-200 text-sm sm:text-base"
                     />
                   </div>
 
@@ -233,8 +226,7 @@ export default function AttendancePage() {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     type="submit"
-                                      className="w-full bg-gradient-to-r from-indigo-500 to-sky-400 hover:from-indigo-500 hover:to-sky-400 text-white text-lg py-3 rounded-lg font-semibold 
-                    shadow-md active:scale-95 transition duration-200 cursor-pointer"
+                    className="w-full bg-gradient-to-r from-indigo-500 to-sky-400 hover:from-indigo-500 hover:to-sky-400 text-white text-base sm:text-lg py-2 sm:py-3 rounded-lg font-semibold shadow-md active:scale-95 transition duration-200 cursor-pointer"
                   >
                     Sign Attendance
                   </motion.button>
