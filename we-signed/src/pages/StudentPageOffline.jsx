@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { saveSignIn, putData, getDataById } from "../db";
-import { QrReader } from 'react-qr-reader';
-import FlippingNumber from "../FlippingNumber";
-import getDurationInMs from "../timeUtils";
-import {decryptText} from "../cryptoUtils"
+import { saveSignIn, putData, getDataById } from "../utils/db.js";
+import { Html5Qrcode } from 'html5-qrcode';
+import FlippingNumber from "../components/FlippingNumber";
+import {decryptText} from "../utils/cryptoUtils.js";
 import { motion } from "framer-motion";
 
 export default function Student() {
@@ -60,24 +59,47 @@ export default function Student() {
     alert("Signed offline. Will sync when online.");
   }
 
-  // QR scan result handler
-  const handleQRResult = (result, error) => {
-    if (result) {
-      try {
-        const parsedData = JSON.parse(result?.text);
-        setScannedData(parsedData);
-        setSessionId(parsedData.specialId);
-        setDurationUnit(parsedData.unit || "minutes");
-        setShowQR(false);
-      } catch (e) {
-        alert("Invalid QR code data");
+  // QR scan result handler for html5-qrcode
+  const html5QrCodeRef = useRef(null);
+  const qrRegionId = "qr-reader-region";
+
+  useEffect(() => {
+    if (showQR) {
+      if (!html5QrCodeRef.current) {
+        html5QrCodeRef.current = new Html5Qrcode(qrRegionId);
       }
+      html5QrCodeRef.current.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        (decodedText) => {
+          try {
+            const parsedData = JSON.parse(decodedText);
+            setScannedData(parsedData);
+            setSessionId(parsedData.specialId);
+            setDurationUnit(parsedData.unit || "minutes");
+            setShowQR(false);
+            html5QrCodeRef.current && html5QrCodeRef.current.stop();
+          } catch (e) {
+            alert("Invalid QR code data");
+          }
+        },
+        (errorMessage) => {
+          // Optionally handle scan errors
+        }
+      );
+    } else if (html5QrCodeRef.current) {
+      html5QrCodeRef.current.stop().catch(() => {});
     }
-    if (error) {
-      // Optionally handle error
-      console.error(error);
-    }
-  };
+    return () => {
+      if (html5QrCodeRef.current) {
+        html5QrCodeRef.current.stop().catch(() => {});
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showQR]);
 
   // Expiration and timer logic
   useEffect(() => {
@@ -142,11 +164,7 @@ export default function Student() {
             transition={{ duration: 0.5 }}
             className="flex flex-col items-center justify-center w-full mb-4"
           >
-            <QrReader
-              onResult={handleQRResult}
-              constraints={{ facingMode: 'environment' }}
-              style={{ width: '100%' }}
-            />
+            <div id={qrRegionId} className="w-full max-w-xs mx-auto" style={{ minHeight: 250 }} />
             <p className="mt-2 text-gray-500 text-sm">Scan the session QR code to sign attendance.</p>
           </motion.div>
         )}

@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "qrcode.react": "^4.2.0",
-    "react-intersection-observer": "^9.16.0",
-    "react-qr-reader": "^3.0.0-beta-1"
-  }
-}

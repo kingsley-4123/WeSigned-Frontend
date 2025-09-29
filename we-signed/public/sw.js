@@ -1,46 +1,42 @@
-const CACHE_NAME = "we-signed-cache";
-const urlsToCache = [
-  "/",
-  "/index.html",
-  "/images/logo.png",
-  // get the urls from the dist folder after running npm run build .
-  "/images/offline.png",
-  "/images/monster.png"
-];
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
 
-self.addEventListener("install", (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log("Opened cache");
-                return cache.addAll(urlsToCache);
-            })
-    );
-    self.skipWaiting();
-});
+if (workbox) {
+  // Precache manifest will be injected by build tools (e.g., Vite, Webpack)
+  workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
 
-self.addEventListener('fetch', (evt) => {
-    const req = evt.request;
-    evt.respondWith(
-        fetch(req)
-        .then((res) => {
-            // Optionally update cache for navigation requests/resources
-            // clone response if you want to cache
-            const clonedResponse = res.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-                cache.put(req, clonedResponse);
-            });
+  // Runtime caching for images and static assets
+  workbox.routing.registerRoute(
+    ({request}) => request.destination === 'image' || request.destination === 'style' || request.destination === 'script',
+    new workbox.strategies.CacheFirst({
+      cacheName: 'weSigned-static-assets-v1',
+      plugins: [
+        new workbox.expiration.ExpirationPlugin({
+          maxEntries: 60,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
+        }),
+      ],
+    })
+  );
 
-            return res;
-        })
-        .catch(async () => {
-            const cache = await caches.open(CACHE_NAME);
-            const cached = await cache.match(req);
-            return cached || cache.match('/offline.html');
-        })
-    );
-});
+  // Fallback: serve cached index.html for navigation requests, offline.html if not available
+  workbox.routing.setCatchHandler(async ({event}) => {
+    if (event.request.destination === 'document') {
+      // Try to serve cached index.html (app shell)
+      const cache = await caches.open(workbox.core.cacheNames.precache);
+      const cachedIndex = await cache.match('/index.html');
+      if (cachedIndex) {
+        return cachedIndex;
+      }
+      // Fallback to offline.html if index.html is not cached
+      return cache.match('/offline.html');
+    }
+    return Response.error();
+  });
+}
 
+
+
+// ...existing code for sync, IndexedDB, and other custom logic...
 
 self.addEventListener("activate", (event) => {
     event.waitUntil(self.clients.claim());
@@ -162,6 +158,11 @@ async function syncPendingAttendance() {
       await clearSignIns();
       console.log('SW: Synced pending attendance successfully');
       console.log('SW: Cleared pending sign-ins successfully');
+      // Show notification to user
+      self.registration.showNotification('Attendance Synced', {
+        body: 'Your offline attendance has been successfully synced!',
+        icon: '/images/logo.png',
+      });
     } else {
       console.warn('SW: Sync failed, server returned', resp.status, formData);
     }
@@ -189,6 +190,11 @@ async function syncPendingSessions() {
     if (resp.status === 200 && data.success) {
       await clearSessions();
       console.log('SW: Synced pending sessions successfully');
+      // Show notification to user
+      self.registration.showNotification('Session Synced', {
+        body: 'Your offline session has been successfully synced!',
+        icon: '/images/logo.png',
+      });
     } else {
       console.warn('SW: Sync failed, server returned', resp.status, data);
     }

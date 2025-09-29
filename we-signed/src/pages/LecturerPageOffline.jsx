@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { QRCodeSVG } from 'qrcode.react';
-import { putData, saveSession, getDataById } from "../db";
+import { putData, saveSession, getDataById } from "../utils/db.js";
 import { nanoid } from "nanoid";
-import getDurationInMs from "../timeUtils";
-import FlippingNumber from "../FlippingNumber";
-import { decryptText } from "../cryptoUtils";
+import getDurationInMs from "../utils/timeUtils.js";
+import FlippingNumber from "../components/FlippingNumber";
+import { decryptText } from "../utils/cryptoUtils.js";
 
  const gradients = [
   "from-indigo-500 to-sky-400",
