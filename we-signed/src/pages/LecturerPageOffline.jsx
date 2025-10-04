@@ -5,6 +5,7 @@ import { nanoid } from "nanoid";
 import getDurationInMs from "../utils/timeUtils.js";
 import FlippingNumber from "../components/FlippingNumber";
 import { decryptText } from "../utils/cryptoUtils.js";
+import { motion } from "framer-motion";
 
  const gradients = [
   "from-indigo-500 to-sky-400",
@@ -43,7 +44,7 @@ export default function Lecturer() {
     const durationMs = getDurationInMs(Number(duration), unit);
     const session = {
       id, // this is the specialID students will type in
-      attendanceName,
+      attendanceName: `attendanceName ${now}`,
       duration: Number(duration),
       unit,
       lecturerId: decryptText(userId),
@@ -145,7 +146,7 @@ export default function Lecturer() {
               type="submit"
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
-              className="bg-gradient-to-r from-green-500 to-sky-400 text-white px-4 py-2 rounded-lg w-full font-semibold shadow-md mt-2"
+              className="bg-gradient-to-r from-green-500 to-sky-400 text-white px-4 py-2 rounded-lg w-full font-semibold shadow-md mt-2 hover:cursor-pointer"
             >
               Start Session
             </motion.button>

@@ -19,8 +19,8 @@ export default function ComponentOffline() {
                 >
                     <FaUserGraduate size={40} className="text-blue-600 mb-4" />
                     <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Student</h2>
-                    <p className="text-gray-500 text-sm sm:text-base mt-2 text-center">
-                        View your successfully signed attendance records.
+                    <p className="text-gray-500 text-lg sm:text-base md:text-xl mt-2 text-center">
+                        Access attendance and course materials.
                     </p>
                 </motion.div>
 
@@ -32,8 +32,8 @@ export default function ComponentOffline() {
                 >
                     <FaChalkboardTeacher size={40} className="text-green-600 mb-4" />
                     <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Lecturer</h2>
-                    <p className="text-gray-500 text-sm sm:text-base mt-2 text-center">
-                        Manage and view the attendances you’ve collected.
+                    <p className="text-gray-500 text-lg sm:text-base md:text-xl mt-2 text-center">
+                        Manage classes and student records.
                     </p>
                 </motion.div>
             </div>

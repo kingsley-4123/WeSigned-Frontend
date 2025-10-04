@@ -64,6 +64,8 @@ export const exportOfflineAttendance = (type, specialId, attendanceName) => serv
 
 export const getSyncedAttendance = (specialId, attendanceName) => service.get(`/sync/${specialId}/${attendanceName}`, { withCredentials: true });
 
+export const initiatePayment = (payload) => service.post('/payment/payment-intent', { payload }, { withCredentials: true });
+
 export const getUserProfile = () => {
     return service.get('/auth/profile')
         .then(response => response.data)

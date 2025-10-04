@@ -13,22 +13,14 @@ function Loading({ isLoading }) {
               <div className="flex flex-col items-center">
             {/* Logo */}
                 <motion.img
-                  src="/images/loadingLogo.png"
+                  src="/images/logo.png"
                   alt="WeSigned Logo"
-                  className="w-44 h-44 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 max-w-full mb-2 object-contain drop-shadow-lg"
-                  animate={{
-                    scale: [1, 1.12, 1],
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 2.5,
-                    ease: "linear",
-                  }}
+                  className="w-40 h-40 sm:w-44 sm:h-44 md:w-44 md:h-44 lg:w-48 lg:h-48 max-w-full mb-5 object-contain drop-shadow-lg"
                 />
 
             {/* Loading dots */}
                 <motion.div
-                  className="flex space-x-2 -mt-15"
+                  className="flex space-x-2"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >

@@ -10,6 +10,7 @@ import HomePage from "./pages/HomePage";
 import TimerPage from "./pages/LecturerTimerPage";
 import WelcomePage from "./pages/WelcomePage";
 import AboutPage from "./pages/AboutPage";
+import SuccessPage from "./pages/SuccessPage";
 import StudentPage from "./pages/StudentPage";
 import ContactPage from "./pages/ContactPage";
 import AttendanceTablePage from "./pages/lecturerViewPage";
@@ -24,6 +25,7 @@ import { triggerAttendanceSync, triggerSessionsSync } from "./registerSw";
 import OfflinePage from "./pages/OfflinePage"; 
 import NotificationPrompt from './components/NotificationPrompt';
 import ExcelComparePage from './pages/ExcelComparePage';
+import OfflineHeader from "./pages/OfflineHeader";
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -91,6 +93,7 @@ export default function App() {
               <Route path="student/attendance/:id" element={<AttendanceDetail />} />
               <Route path="student/attendance" element={<AttendancePage />} />
               <Route path="lecturer/timer" element={<TimerPage />} />
+              <Route path="success" element={<SuccessPage />} />
               <Route path="lecturer-page" element={<LecturerPage />} />
               <Route path="lecturer" element={<AttendanceTablePage />} />
               <Route path="compare-page" element={<ExcelComparePage />} />
@@ -105,10 +108,13 @@ export default function App() {
           <>
             {/* Offline flow and I need to design thesse pages.*/}
             <Route path="/" element={<OfflinePage />} />
-            <Route path="/component-offline" element={<ComponentOffline />} />
-            <Route path="/lecturer-offline" element={<LecturerPageOffline />} />
-            <Route path="/student-offline" element={<StudentPageOffline />} />
-            <Route path="*" element={<NotFound />} />
+            <Route path="/offline-header" element={<OfflineHeader />} >
+              <Route path="component-offline" element={<ComponentOffline />} />
+              <Route path="lecturer-offline" element={<LecturerPageOffline />} />
+              <Route path="student-offline" element={<StudentPageOffline />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+
           </>
         )}
         </Routes>
