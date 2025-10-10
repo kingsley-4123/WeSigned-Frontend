@@ -19,7 +19,7 @@ export default function AttendanceTablePage() {
   const navigator = useNavigate();
 
   // Example data — replace with API response
-  // const students = [
+  // const attendance = [
   //   { id: 1, name: "John Doe", studentId: "STU123", signedAt: "2025-08-23 10:00" },
   //   { id: 2, name: "Jane Smith", studentId: "STU456", signedAt: "2025-08-23 10:05" },
   //   { id: 3, name: "Michael Lee", studentId: "STU789", signedAt: "2025-08-23 10:10" },
@@ -128,7 +128,7 @@ export default function AttendanceTablePage() {
             <tr>
               <th className="px-3 sm:px-6 py-2 sm:py-3">#</th>
               <th className="px-3 sm:px-6 py-2 sm:py-3">Name</th>
-              <th className="px-3 sm:px-6 py-2 sm:py-3">Student ID</th>
+              <th className="px-3 sm:px-6 py-2 sm:py-3">Reg No</th>
               <th className="px-3 sm:px-6 py-2 sm:py-3">Signed At</th>
             </tr>
           </thead>

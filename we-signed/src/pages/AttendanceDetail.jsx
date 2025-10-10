@@ -12,9 +12,14 @@ export default function AttendanceDetail() {
 
   useEffect(() => {
     async function fetchAttendance() {
-      const data = await getDataById("studentAttendances", id);
-      setAttendance(data);
-      setLoading(false);
+      try {
+        const data = await getDataById("studentAttendances", id);
+        setAttendance(data);
+        setLoading(false);
+      } catch (err) {
+        console.error("error in attendance details:", err);
+        setLoading(false);
+      }
     }
     fetchAttendance();
   }, [id]);

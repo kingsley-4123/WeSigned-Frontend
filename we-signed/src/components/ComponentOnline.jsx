@@ -33,7 +33,7 @@ function ComponentOnline({ gender }) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-20 xl:px-32 bg-gray-100 min-h-screen flex items-center justify-center">
+    <div className="flex-1 px-4 py-8 sm:px-8 md:px-12 lg:px-20 xl:px-32 bg-gray-100 min-h-screen flex items-center justify-center -mt-20">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-2xl md:max-w-3xl lg:max-w-4xl">
         <Card
           title="STUDENT"

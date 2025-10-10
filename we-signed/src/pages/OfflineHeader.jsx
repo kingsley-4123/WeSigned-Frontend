@@ -10,8 +10,8 @@ export default function OfflineHeader() {
             alt="WeSigned Logo"
             className="w-12 h-12 sm:w-16 sm:h-16 object-contain"
           />
-          <span className="text-lg sm:text-2xl font-bold text-[#94c04c] tracking-tight whitespace-nowrap">
-            WeSigned
+          <span className="text-lg sm:text-2xl font-bold text-[#273c72] tracking-tight whitespace-nowrap">
+            WeS<span className="text-[#94c04c]">igned</span>
           </span>
         </div>
         <div className="flex items-center gap-2">

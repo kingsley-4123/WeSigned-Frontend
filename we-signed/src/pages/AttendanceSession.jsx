@@ -33,7 +33,7 @@ export default function AttendanceSession() {
     if (!["hours", "minutes", "seconds"].includes(formData.unit)) {
       e.unit = "Pick a duration unit";
     }
-    if (!["50", "100", "200", "500", "1000"].includes(formData.range)) {
+    if (!["20", "50", "100", "200", "500", "1000"].includes(formData.range)) {
       e.range = "Pick a valid range";
     }
     return e;
@@ -41,42 +41,49 @@ export default function AttendanceSession() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const eObj = validate();
-    setErrors(eObj);
-    if (Object.keys(eObj).length) return;
+    try {
+      const eObj = validate();
+      setErrors(eObj);
+      if (Object.keys(eObj).length) return;
 
-    setLoading(true);
-    const finalDuration = duration === "custom" ? Number(customDuration) : Number(duration);
-    const payload = { ...formData, duration: finalDuration };
+      setLoading(true);
+      const finalDuration = duration === "custom" ? Number(customDuration) : Number(duration);
+      const payload = { ...formData, duration: finalDuration };
 
-    const location = getCurrentLocation();
-    if (!location) {
-      console.error("Could not get location");
-      setLoading(false);
-      return;
-    } else {
-      const { latitude, longitude } = location;
-      payload.latitude = latitude;
-      payload.longitude = longitude;
-      console.log("Got location:", location);
-    }
-
-    console.log("Submitting:", payload);
-    createAttendanceSession(payload)
-      .then((res) => {
-        console.log("Created session:", res.data);
-        toast.success(res.data.message);
-        const { attSession, lecturer, date } = res.data;
-        alert(`Your Attendance Session ID is ${attSession.special_id}. Share it with your students.`);
-        navigate("lecturer/timer", { state: {attSession, lecturer, date} });  
-        
-      })
-      .catch((err) => {
-        console.error("Error creating session:", err.response ? err.response.data : err);
-        toast.error("Failed to create session. Try again.");
+      const location = getCurrentLocation();
+      if (!location) {
+        console.error("Could not get location");
         setLoading(false);
-      });   
+        return;
+      } else {
+        const { latitude, longitude } = location;
+        payload.latitude = latitude;
+        payload.longitude = longitude;
+        console.log("Got location:", location);
+      }
 
+      console.log("Submitting:", payload);
+      createAttendanceSession(payload)
+        .then((res) => {
+          console.log("Created session:", res.data);
+          toast.success(res.data.message);
+          const { attSession, lecturer, date } = res.data;
+          alert(`Your Attendance Session ID is ${attSession.special_id}. Share it with your students.`);
+          navigate("lecturer/timer", { state: {attSession, lecturer, date} });  
+          
+        })
+        .catch((err) => {
+          console.error("Error creating session:", err.response ? err.response.data : err);
+          toast.error("Failed to create session. Try again.");
+          setLoading(false);
+        });   
+
+      
+    } catch (err) {
+      console.error("Error in Session", err);
+      setLoading(false);
+    }
+    
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);

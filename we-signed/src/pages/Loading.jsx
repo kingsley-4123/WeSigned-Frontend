@@ -15,8 +15,11 @@ function Loading({ isLoading }) {
                 <motion.img
                   src="/images/logo.png"
                   alt="WeSigned Logo"
-                  className="w-40 h-40 sm:w-44 sm:h-44 md:w-44 md:h-44 lg:w-48 lg:h-48 max-w-full mb-5 object-contain drop-shadow-lg"
+                  className="w-30 h-30 sm:w-32 sm:h-32 md:w-34 md:h-34 max-w-full mb-5 object-contain drop-shadow-lg"
                 />
+                <div className="text-3xl md:text-4xl font-bold text-[#273c72] tracking-tight whitespace-nowrap mb-5">
+                  WeS<span className="text-[#91c04d]">igned</span>
+                </div>
 
             {/* Loading dots */}
                 <motion.div

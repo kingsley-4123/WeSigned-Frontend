@@ -14,7 +14,7 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { FiFilter } from 'react-icons/fi';
-import { MdCompareArrows } from 'react-icons/md';
+import { CreditCard } from "lucide-react";
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,34 +50,43 @@ export default function DashboardLayout() {
       {/* Sidebar (Desktop) */}
       <aside className="hidden md:flex w-64 bg-gradient-to-t from-indigo-300 to-sky-50 shadow-lg flex-col p-6">
         {/* Logo */}
-        <img
-          src="/images/welcomeLogo.png"
-          alt="Logo"
-          className="w-32 h-32 md:w-38 md:h-38 pt-5 -mt-13 mb-3"
-        />
+        <div className="flex items-center gap-2 mb-8 -mt-2">
+          <img
+            src="/images/logo.png"
+            alt="Logo"
+            className="w-16 h-16 object-contain"
+          />
+          <span className="text-lg sm:text-2xl font-bold text-[#273c72] tracking-tight whitespace-nowrap">
+            WeS<span className="text-[#94c04c]">igned</span>
+          </span>
+        </div>
         <nav className="space-y-4">
-          <NavLink to="/dashboard" className={linkClass}>
-            <FaHome />
+          <NavLink to="/dashboard" end className={linkClass}>
+            <FaHome className="text-[#94c04c] mr-5"/>
             <span>Home</span>
           </NavLink>
-          <NavLink to="/student" className={linkClass}>
-            <FaUserGraduate />
+          <NavLink to="student" className={linkClass}>
+            <FaUserGraduate className="text-[#94c04c] mr-5"/>
             <span>Student</span>
           </NavLink>
-          <NavLink to="/lecturer" className={linkClass}>
-            <FaChalkboardTeacher />
+          <NavLink to="lecturer" className={linkClass}>
+            <FaChalkboardTeacher className="text-[#94c04c] mr-5"/>
             <span>Lecturer</span>
           </NavLink>
-          <NavLink to="/about" className={linkClass}>
-            <FaInfoCircle />
+          <NavLink to="about" className={linkClass}>
+            <FaInfoCircle className="text-[#94c04c] mr-5"/>
             <span>About</span>
           </NavLink>
-          <NavLink to="/contact" className={linkClass}>
-            <FaEnvelope />
+          <NavLink to="contact" className={linkClass}>
+            <FaEnvelope className="text-[#94c04c] mr-5" />
             <span>Contact</span>
           </NavLink>
-          <NavLink to="/compare-page" className={linkClass}>
-            <FiFilter />
+          <NavLink to="subscription" className={linkClass}>
+            <CreditCard className="text-[#94c04c] mr-3"/>
+            <span>Subscribe</span>
+          </NavLink>
+          <NavLink to="compare-page" className={linkClass}>
+            <FiFilter className="text-[#94c04c] mr-5"/>
             <span>Compare Docs</span>
           </NavLink>
         </nav>
@@ -97,31 +106,37 @@ export default function DashboardLayout() {
               {/* Close button */}
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="absolute top-4 right-4 text-gray-600 md:hidden"
+                className="absolute top-4 right-4 text-gray-600 hover:cursor-pointer md:hidden"
               >
                 <FaTimes size={20} />
               </button>
-
-              <img
-                src="/images/welcomeLogo.png"
-                alt="Logo"
-                className="w-32 h-32 md:w-38 md:h-38 pt-5 -mt-13 mb-3"
-              />
+              <div className="flex items-center gap-2 sm:gap-4 mb-8 -mt-2">
+                <img
+                  src="/images/logo.png"
+                  alt="Logo"
+                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
+                />
+                <span className="text-lg sm:text-2xl font-bold text-blue-600 tracking-tight whitespace-nowrap">
+                  We<span className="text-[#94c04c]">Signed</span>
+                </span>
+              </div>
+              
               <nav className="space-y-4">
                 <NavLink
                   to="/dashboard"
+                  end
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <FaHome />
+                  <FaHome className="text-[#94c04c] mr-5"/>
                   <span>Home</span>
                 </NavLink>
                 <NavLink
-                  to="/student"
+                  to="student"
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <FaUserGraduate />
+                  <FaUserGraduate className="text-[#94c04c] mr-5"/>
                   <span>Student</span>
                 </NavLink>
                 <NavLink
@@ -129,7 +144,7 @@ export default function DashboardLayout() {
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <FaChalkboardTeacher />
+                  <FaChalkboardTeacher className="text-[#94c04c] mr-5"/>
                   <span>Lecturer</span>
                 </NavLink>
                 <NavLink
@@ -137,7 +152,7 @@ export default function DashboardLayout() {
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <FaInfoCircle />
+                  <FaInfoCircle className="text-[#94c04c] mr-5"/>
                   <span>About</span>
                 </NavLink>
                 <NavLink
@@ -145,15 +160,23 @@ export default function DashboardLayout() {
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <FaEnvelope />
+                  <FaEnvelope className="text-[#94c04c] mr-5"/>
                   <span>Contact</span>
+                </NavLink>
+                <NavLink
+                  to="subscription"
+                  className={linkClass}
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <CreditCard className="text-[#94c04c] mr-3"/>
+                  <span>Subscribe</span>
                 </NavLink>
                 <NavLink
                   to="compare-page"
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <FiFilter />
+                  <FiFilter className="text-[#94c04c] mr-5"/>
                   <span>Compare Docs</span>
                 </NavLink>
               </nav>
@@ -214,7 +237,7 @@ export default function DashboardLayout() {
                   className="absolute right-0 mt-3 w-48 bg-white rounded-lg shadow-lg overflow-hidden z-50"
                 >
                   <NavLink
-                    to="/profile"
+                    to="profile"
                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
                     onClick={() => setProfileOpen(false)}
                   >
@@ -222,7 +245,7 @@ export default function DashboardLayout() {
                     Profile
                   </NavLink>
                   <NavLink
-                    to="/settings"
+                    to="settings"
                     className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
                     onClick={() => setProfileOpen(false)}
                   >

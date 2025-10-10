@@ -15,7 +15,7 @@ export default function ComponentOffline() {
                 <motion.div
                     whileHover={{ scale: 1.05 }}
                     className="bg-white p-6 sm:p-8 md:p-10 rounded-2xl shadow-lg cursor-pointer flex flex-col items-center justify-center w-full h-full min-h-[220px]"
-                    onClick={() => navigate('/student-offline')}
+                    onClick={() => navigate('/offline-header/student-offline')}
                 >
                     <FaUserGraduate size={40} className="text-blue-600 mb-4" />
                     <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Student</h2>
@@ -28,9 +28,9 @@ export default function ComponentOffline() {
                 <motion.div
                     whileHover={{ scale: 1.05 }}
                     className="bg-white p-6 sm:p-8 md:p-10 rounded-2xl shadow-lg cursor-pointer flex flex-col items-center justify-center w-full h-full min-h-[220px]"
-                    onClick={() => navigate('/lecturer-offline')}
+                    onClick={() => navigate('/offline-header/lecturer-offline')}
                 >
-                    <FaChalkboardTeacher size={40} className="text-green-600 mb-4" />
+                    <FaChalkboardTeacher size={40} className="text-[#94c04c] mb-4" />
                     <h2 className="text-lg sm:text-xl md:text-2xl font-semibold">Lecturer</h2>
                     <p className="text-gray-500 text-lg sm:text-base md:text-xl mt-2 text-center">
                         Manage classes and student records.

@@ -1,7 +1,35 @@
 import { motion, useInView } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import FeatureSection from "../components/FeatureSection";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
+// Typing animation component
+function TypingAnimation({ text, speed = 60, className = "" }) {
+  const [displayed, setDisplayed] = useState("");
+  const [showCaret, setShowCaret] = useState(true);
+
+  useEffect(() => {
+    let i = 0;
+    setDisplayed("");
+    setShowCaret(true);
+    const type = () => {
+      if (i <= text.length) {
+        setDisplayed(text.slice(0, i));
+        i++;
+        setTimeout(type, speed);
+      }
+    };
+    type();
+    const caretInterval = setInterval(() => setShowCaret(c => !c), 500);
+    return () => clearInterval(caretInterval);
+  }, [text, speed]);
+
+  return (
+    <span className={className} style={{ fontFamily: 'monospace' }}>
+      {displayed}
+      <span className={showCaret ? "opacity-100" : "opacity-0"} style={{ transition: 'opacity 0.2s' }}>|</span>
+    </span>
+  );
+}
 
 export default function WelcomePage() {
   const navigate = useNavigate();
@@ -21,7 +49,7 @@ export default function WelcomePage() {
     },
     {
       title: "Works Online & Offline",
-      text: "Whether in a large hall with internet access or in areas with poor connectivity, WeSigned works perfectly. Lecturers can run sessions online or offline — students just connect to the lecturer’s hotspot to sign in.",
+      text: "Whether in a large hall with internet access or in areas with poor connectivity, WeSigned works perfectly. Lecturers can run sessions online or offline — students just connect through QR code scanning to sign in.",
       image: "/images/offline-mode.png",
       reverse: false,
     },
@@ -63,15 +91,15 @@ export default function WelcomePage() {
           transition={{ duration: 0.8 }}
           src="/images/welcomeLogo.png"
           alt="WeSigned Logo"
-          className="w-44 h-44 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 max-w-full object-contain -mb-15 -mt-12 drop-shadow-lg"
+          className="w-50 h-50 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 max-w-full object-contain mb-3 drop-shadow-lg"
         />
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-4xl md:text-6xl font-bold text-blue-700 mb-4 -mt-8"
+          className="text-4xl md:text-6xl font-bold text-[#1965a7] mb-4 -mt-10 min-h-[3.5rem] md:min-h-[4.5rem]"
         >
-          WeSigned — Smart, Secure, Simple Attendance
+          <TypingAnimation text="WeSigned — Smart, Secure, Simple Attendance" speed={55} />
         </motion.h1>
         <motion.p
           initial={{ opacity: 0 }}
@@ -92,7 +120,7 @@ export default function WelcomePage() {
         >
           <button
             size="lg"
-            className="bg-[#9ec551] hover:bg-blue-700 hover:cursor-pointer text-white rounded-2xl px-8 py-6"
+            className="bg-[#94c04c] hover:bg-[#669b11] hover:cursor-pointer text-white rounded-2xl px-8 py-6"
             onClick={scrollToFeatures}
           >
             Explore Features
@@ -125,7 +153,7 @@ export default function WelcomePage() {
           transition={{ duration: 0.6 }}
           whileHover={{ scale: 1.05 }}>
           <button
-            className="bg-blue-600 hover:bg-blue-700 hover:cursor-pointer text-white font-medium rounded-2xl px-8 py-4 text-lg transition-transform transform hover:scale-105"
+            className="bg-[#94c04c] hover:bg-[#669b11] hover:cursor-pointer text-white font-medium rounded-2xl px-8 py-4 text-lg transition-transform transform hover:scale-105"
             onClick={() => navigate("/auth")}
           >
             Get Started

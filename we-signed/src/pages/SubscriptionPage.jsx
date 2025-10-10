@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { initiatePayment } from "../utils/service.js";
+import { useNavigate } from "react-router-dom";
 
 const plans = [
-  { label: "2 Weeks", value: "2w", price: 2000, description: "2 weeks subscription" },
-  { label: "1 Month", value: "1m", price: 3500, description: "1 month subscription" },
-  { label: "6 Months", value: "6m", price: 18000, description: "6 months subscription" },
-  { label: "1 Year", value: "1y", price: 32000, description: "1 year subscription" },
+  { label: "2 Weeks", value: "2w", price: 500, description: "2 weeks subscription" },
+  { label: "1 Month", value: "1m", price: 1000, description: "1 month subscription" },
+  { label: "6 Months", value: "6m", price: 6000, description: "6 months subscription" },
+  { label: "1 Year", value: "1y", price: 12000, description: "1 year subscription" },
 ];
 
 export default function SubscriptionPage() {
@@ -18,6 +20,8 @@ export default function SubscriptionPage() {
     description: plans[0].description,
   });
 
+  const navigate = useNavigate();
+
   const handlePlanSelect = (plan) => {
     setSelectedPlan(plan);
     setForm((f) => ({ ...f, amount: plan.price, description: plan.description }));
@@ -27,10 +31,18 @@ export default function SubscriptionPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // TODO: handle payment logic here
-    alert("Subscription submitted!\n" + JSON.stringify(form, null, 2));
+    try { 
+      const response = await initiatePayment(form);
+      if (response.data) {
+        alert(response.data.message);
+        navigate(response.data.checkoutUrl);
+      }
+    } catch (err) {
+      console.error("Subscription initiate payment error", err);
+    }
   };
 
   return (
