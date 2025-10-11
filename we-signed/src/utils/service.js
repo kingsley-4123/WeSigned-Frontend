@@ -1,11 +1,7 @@
 import axios from 'axios';
 
-//'http://10.154.178.217:5000/api' 'http://localhost:5000/api' || ;
-
-const API_BASE_URL = '/api';
-
 const service = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: import.meta.env.VITE_API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },

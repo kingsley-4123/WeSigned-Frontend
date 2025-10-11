@@ -41,6 +41,7 @@ export default function App() {
     // Listen for online/offline changes
     async function handleOnline() {
       const onlineStatus = await checkOnline();
+      console.log(onlineStatus.data.message);
       if (onlineStatus) {
         setIsOnline(true);
       } else {
