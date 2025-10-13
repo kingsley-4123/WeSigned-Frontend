@@ -13,7 +13,7 @@ import AboutPage from "./pages/AboutPage";
 import SuccessPage from "./pages/SuccessPage";
 import StudentPage from "./pages/StudentPage";
 import ContactPage from "./pages/ContactPage";
-import AttendanceTablePage from "./pages/lecturerViewPage";
+import AttendanceTablePage from "./pages/LecturerViewPage";
 import LecturerPage from "./pages/LecturerPage";
 import AttendanceDetail from "./pages/AttendanceDetail";
 import NotFound from "./pages/PageNotFound";
