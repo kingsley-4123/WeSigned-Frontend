@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getAttendances } from "../utils/service.js";
 import { useClearLocationState } from "../utils/ClearLocation.jsx";
+import { useAlert } from "../components/AlertContext.jsx";
 
 export default function TimerPage() {
   const state = useClearLocationState();
@@ -24,6 +25,7 @@ export default function TimerPage() {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isFinished, setIsFinished] = useState(false);
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   // Countdown logic
   useEffect(() => {
@@ -51,7 +53,11 @@ export default function TimerPage() {
   // Navigate to table
   const handleGetAttendance = async () => {
     try {
-      const res = await getAttendances(special_id );
+      const res = await getAttendances(special_id);
+      if (!res.data.attendanceList) {
+        showAlert("No attendance records found.", 'error');
+        return;
+      }
       console.log("Fetched attendances:", res.data);
       navigate("/lecturer", {
         state: {
@@ -67,7 +73,7 @@ export default function TimerPage() {
       });
     } catch (err) {
       console.error("Error fetching attendances:", err.response ? err.response.data : err);
-      alert("Failed to fetch attendance records.");
+      showAlert("Failed to fetch attendance records.", 'error');
     }
 
     

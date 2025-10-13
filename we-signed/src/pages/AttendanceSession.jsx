@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { FaClock, FaRulerCombined, FaCheck } from "react-icons/fa";
+import { useAlert } from "../components/AlertContext.jsx";
 
 export default function AttendanceSession() {
   const [duration, setDuration] = useState("1"); // 1–10 or "custom"
@@ -19,6 +20,7 @@ export default function AttendanceSession() {
   const [errors, setErrors] = useState({});
 
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   const validate = () => {
     const e = {};
@@ -52,7 +54,7 @@ export default function AttendanceSession() {
 
       const location = getCurrentLocation();
       if (!location) {
-        console.error("Could not get location");
+        showAlert("Could not get location. Please allow location access.", 'error');
         setLoading(false);
         return;
       } else {
@@ -65,8 +67,8 @@ export default function AttendanceSession() {
       console.log("Submitting:", payload);
       createAttendanceSession(payload)
         .then((res) => {
+          showAlert("Attendance session created successfully!", 'success');
           console.log("Created session:", res.data);
-          toast.success(res.data.message);
           const { attSession, lecturer, date } = res.data;
           alert(`Your Attendance Session ID is ${attSession.special_id}. Share it with your students.`);
           navigate("lecturer/timer", { state: {attSession, lecturer, date} });  
@@ -74,13 +76,14 @@ export default function AttendanceSession() {
         })
         .catch((err) => {
           console.error("Error creating session:", err.response ? err.response.data : err);
-          toast.error("Failed to create session. Try again.");
+          showAlert("Failed to create session. Try again.", 'error');
           setLoading(false);
         });   
 
       
     } catch (err) {
       console.error("Error in Session", err);
+      showAlert("An unexpected error occurred. Try again.", 'error');
       setLoading(false);
     }
     

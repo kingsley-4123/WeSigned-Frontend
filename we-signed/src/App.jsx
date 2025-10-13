@@ -28,6 +28,9 @@ import ExcelComparePage from './pages/ExcelComparePage';
 import OfflineHeader from "./pages/OfflineHeader";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import checkOnline from "./utils/service.js";
+import { AlertProvider } from "./components/AlertContext";
+
+// Wrap the entire app in AlertProvider to provide alert context
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -88,7 +91,7 @@ export default function App() {
   }
 
   return (
-    <>
+    <AlertProvider>
       <NotificationPrompt />
       <Router>
         <Routes>
@@ -129,7 +132,7 @@ export default function App() {
         )}
         </Routes>
       </Router>
-    </>
+    </AlertProvider>
   );
 }
 // Note: This App component handles routing and online/offline states. When offline, it restricts access to certain pages and shows an OfflinePage.

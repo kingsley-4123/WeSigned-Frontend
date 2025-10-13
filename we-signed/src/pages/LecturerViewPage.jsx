@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { attendanceExport, getAttendances, getSyncedAttendance, exportOfflineAttendance } from "../utils/service.js";
 import { toast } from "react-hot-toast";
 import { useState } from "react";
+import { useAlert } from "../components/AlertContext.jsx";
 
 export default function AttendanceTablePage() {
   const [loadingFile, setLoadingFile] = useState(null); // "pdf" | "excel" | null
@@ -17,6 +18,12 @@ export default function AttendanceTablePage() {
   const { special_id, attendance, attendance_name, lecturer, date } = newData2;
   
   const navigator = useNavigate();
+  const { showAlert } = useAlert();
+
+  // If no data, redirect to lecturer page
+  if ((!reViewId || !reViewName) && (!special_id || !attendance)) {
+    navigator("lecturer");
+  }
 
   // Example data — replace with API response
   // const attendance = [
@@ -35,9 +42,10 @@ export default function AttendanceTablePage() {
       if (reViewStatus === "offline") {
         // Fetch offline attendance for table
         const res = await getSyncedAttendance(reViewId, reViewName);
+        if (!res.data.success) return showAlert(res.data.message, 'error');
+        showAlert(res.data.message, 'success');
         setNewAttendance(res.data.attendanceList);
-        toast.success("Offline attendance fetched.");
-        if (res.error) return toast.error("Error fetching offline attendance.");
+        setIsAttendance(true);
 
         // Export offline attendance (assumes exportOfflineAttendance exists)
         const exportRes = await exportOfflineAttendance(type, reViewId, reViewName);
@@ -75,7 +83,7 @@ export default function AttendanceTablePage() {
         window.URL.revokeObjectURL(url);
       }
     } catch (err) {
-      alert("❌ Download failed. Please try again.");
+      showAlert("❌ Download failed. Please try again.", "error");
       console.error(err);
     } finally {
       setLoadingFile(null);

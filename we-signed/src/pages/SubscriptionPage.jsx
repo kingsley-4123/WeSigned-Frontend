@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { initiatePayment } from "../utils/service.js";
 import { useNavigate } from "react-router-dom";
+import { useAlert } from "../components/AlertContext.jsx";
 
 const plans = [
   { label: "2 Weeks", value: "2w", price: 500, description: "2 weeks subscription" },
@@ -21,6 +22,7 @@ export default function SubscriptionPage() {
   });
 
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   const handlePlanSelect = (plan) => {
     setSelectedPlan(plan);
@@ -37,11 +39,14 @@ export default function SubscriptionPage() {
     try { 
       const response = await initiatePayment(form);
       if (response.data) {
-        alert(response.data.message);
+        showAlert(response.data.message || "Redirecting to payment...", 'success'); 
         navigate(response.data.checkoutUrl);
+      } else {
+        showAlert(response.data.message || response.data.error, 'error');
       }
     } catch (err) {
       console.error("Subscription initiate payment error", err);
+      showAlert(err.response?.data?.message || "Subscription failed. Please try again.", 'error');
     }
   };
 

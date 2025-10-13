@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import FlippingNumber from "../components/FlippingNumber";  
 import { FaSearch } from "react-icons/fa";
+import { useAlert } from "../components/AlertContext.jsx";
+import { all } from "axios";
 
 // 🔹 Helper to format time mm:ss
 const formatTime = (time) => {
@@ -22,6 +24,7 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   // Countdown effect
   useEffect(() => {
@@ -44,9 +47,9 @@ export default function AttendancePage() {
       console.log("Fetched attendance:", res.data);
 
       if (res.data) {
-        const { name, duration } = res.data;
-        setAttendance({ name, duration });
-        setTimeLeft(duration);
+        const { attendance_name, time_left_minutes } = res.data.result;
+        setAttendance({ name: attendance_name, duration: time_left_minutes });
+        setTimeLeft(time_left_minutes);
       }
     } catch (err) {
       console.error(err);
@@ -67,21 +70,24 @@ export default function AttendancePage() {
     // Get location
     const location = getCurrentLocation();
     if (!location) {
-      console.error("Could not get location");
+      showAlert("Could not get location. Please allow location access.", 'error');
       setLoading(false);
       return;
     } else {
       const { latitude, longitude } = location;
       data.latitude = latitude;
       data.longitude = longitude;
-      console.log("Got location:", location);
+      showAlert("Location captured successfully.", 'success');
     }
 
     try {
       const res = await signAttendance(specialId, data);
-      if(!res.data.success) toast.error(res.data.message || "Failed to sign attendance. Try again.");
+      if(!res.data.success) showAlert(res.data.message || "Failed to sign attendance. Try again.", 'error');
       console.log("Signed attendance:", res.data);  
-      toast.success(res.data.message);
+      showAlert(res.data.message || "Attendance signed successfully!", 'success');
+      setAttendance(null);
+      setTimeLeft(null);
+      setSpecialId("");
       const { title, lecturer, date } = res.data.student;
       navigate("student", {
         state: {
@@ -94,7 +100,8 @@ export default function AttendancePage() {
       
     } catch (err) {
       console.error(err);
-      toast.error("Failed to sign attendance. Try again.");
+      showAlert("Failed to sign attendance. Try again.", 'error');
+      setLoading(false);
     }
   };
 

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { encryptText } from '../utils/cryptoUtils.js';
 import toast from 'react-hot-toast';
 import PasswordInput from '../components/PasswordComponent.jsx';
+import { useAlert } from '../components/AlertContext.jsx';
 
 function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -27,6 +28,7 @@ function AuthForm() {
   const inputRefs = useRef([]);
 
   const navigate = useNavigate();
+  const { showAlert } = useAlert();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -61,7 +63,7 @@ function AuthForm() {
         const registrationResponse = await startRegistration({ optionsJSON: result });
         console.log("regRes", registrationResponse);
         if (registrationResponse.error) {
-          setError(registrationResponse.error);
+          showAlert(registrationResponse.error, 'error');
           setLoading(false);
           return;
         }
@@ -70,6 +72,7 @@ function AuthForm() {
         if (response.data) {
           user.userId = encryptText(userId);
           await putData('user', user);
+          showAlert('Registration successful!', 'success');
           localStorage.setItem('token', response.headers['x-auth-token']);
           setSuccess(true);
           setTimeout(() => navigate('/dashboard'), 1500);
@@ -93,7 +96,7 @@ function AuthForm() {
         const authResponse = await startAuthentication({ optionsJSON: result });
         console.log('authResponse', authResponse);
         if (authResponse.error) {
-          setError(authResponse.error);
+          showAlert(authResponse.error, 'error');
           setLoading(false);
           return;
         }
@@ -114,10 +117,9 @@ function AuthForm() {
       } catch (err) {
         if (err.name === "NotAllowedError") {
           setShowFallback(true); // Show popup
-          toast.error("wait something is wrong.");
         } else {
           console.error("Unexpected error:", err);
-          toast.error("Unexpected error");
+          showAlert("Unexpected error", 'error');
         }
       }
     }
@@ -151,11 +153,11 @@ function AuthForm() {
     try {
       const { email } = form;
       const res = await sendOTP(email);
-      toast.success(`OTP has been sent to this email: ${email}`);
+      showAlert(res.data.message, 'success');
       console.log(res.data);
       setShowOtpInput(true);
     } catch (err) {
-      toast.error("Email not sent Successfully.");
+      showAlert("Mail not sent Successfully.", 'error');
       setError("Email sending issues.");
       console.log(err);
     }
@@ -170,7 +172,10 @@ function AuthForm() {
       const res = await verIfyOTP(otpValue);
       console.log(res);
       if (res.data.success) {
-        toast.success(res.data.message);
+        showAlert(res.data.message, 'success');
+        setShowFallback(false);
+        setShowOtpInput(false);
+        setOtp(Array(6).fill(""));
         const reReg = await reRegister(res.data.email);
         const result = reReg.data.options;
         console.log("Options", result);
@@ -190,10 +195,10 @@ function AuthForm() {
           setTimeout(() => navigate('/dashboard'), 1500);
         } else localStorage.removeItem('token');
       } else {
-        toast.error("Code verification failed.");
+        showAlert(res.data.message, 'error');
       }
     }catch(err){
-      toast.error("Something is wrong.");
+      showAlert("Something is wrong.", 'error');
       setError("Something is wrong.")
       console.log(err);
     }
