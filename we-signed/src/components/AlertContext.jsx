@@ -41,20 +41,6 @@ export const AlertProvider = ({ children }) => {
 
   // Define a special shake animation for error alerts
   const getAnimation = (type) => {
-    if (type === "error") {
-      return {
-        initial: { scale: 0.9, opacity: 0, y: -20 },
-        animate: {
-          scale: 1,
-          opacity: 1,
-          y: 0,
-          x: [0, -10, 10, -8, 8, -4, 4, 0],
-        },
-        exit: { scale: 0.9, opacity: 0, y: 20 },
-      };
-    }
-
-    // Default smooth pop for other alerts
     return {
       initial: { scale: 0.8, opacity: 0, y: -20 },
       animate: { scale: 1, opacity: 1, y: 0 },

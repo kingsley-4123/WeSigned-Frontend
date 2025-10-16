@@ -112,7 +112,7 @@ export default function LecturerPage() {
 
         {attendances.length === 0 && (
           <p className="text-gray-500 col-span-full text-center">
-            No attendance signed yet.
+            No Session created yet.
           </p>
         )}
       </div>

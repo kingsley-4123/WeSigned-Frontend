@@ -27,7 +27,6 @@ import NotificationPrompt from './components/NotificationPrompt';
 import ExcelComparePage from './pages/ExcelComparePage';
 import OfflineHeader from "./pages/OfflineHeader";
 import SubscriptionPage from "./pages/SubscriptionPage";
-import checkOnline from "./utils/service.js";
 import { AlertProvider } from "./components/AlertContext";
 
 // Wrap the entire app in AlertProvider to provide alert context
@@ -42,15 +41,8 @@ export default function App() {
     const timer = setTimeout(() => setLoading(false), 3000);
 
     // Listen for online/offline changes
-    async function handleOnline() {
-      const onlineStatus = await checkOnline();
-      console.log(onlineStatus.data.message);
-      if (onlineStatus) {
-        setIsOnline(true);
-      } else {
-        setIsOnline(false);
-        alert("You are currently offline. Some features may be unavailable.");
-      }
+    function handleOnline() {
+      setIsOnline(true);
       // Trigger syncs when back online
       triggerAttendanceSync();
       triggerSessionsSync();

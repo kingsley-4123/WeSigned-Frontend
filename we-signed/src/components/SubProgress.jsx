@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from "framer-motion";
 import { getSubTimestamp } from '../utils/service';
+import { useAlert } from './AlertContext';
 
 
 export default function SubProgress() {
@@ -9,6 +10,8 @@ export default function SubProgress() {
     const [startDate, setStartDate] = useState(0);
     const [total, setTotal] = useState(0);
 
+    const { showAlert } = useAlert();
+
     // Set your subscription start and expiration dates here
     useEffect(() => {
         async function getTimestamps() {
@@ -16,21 +19,27 @@ export default function SubProgress() {
                 const response = await getSubTimestamp();
                 if (response.data) {
                     const { expiration, start, message } = response.data;
-                    alert(message);
+                    // if (message) showAlert(message, "success");
                     const total = expiration - start;
                     setStartDate(start);
                     setTotal(total);
+                } else {
+                    setStartDate(0);
+                    setTotal(0);
                 }
             } catch (err) {
-                alert("Error getting subscription timestamps");
-                console.error("Error getting subscription timestamps", err);
+                setStartDate(0);
+                setTotal(0);
+                // showAlert("Error getting subscription timestamps", "error");
+                // console.error("Error getting subscription timestamps", err);
             }
         }
-        getTimestamps()
+        getTimestamps();
     }, []);
 
     // Calculate the actual progress
     const getActualProgress = () => {
+        if (!total || total <= 0) return 0;
         const now = Date.now();
         const elapsed = now - startDate;
         return Math.min((elapsed / total) * 100, 100);
@@ -38,6 +47,7 @@ export default function SubProgress() {
 
     // Animate drop-in, then fill bar
     useEffect(() => {
+        showAlert("Subscription status updated", "error");
         // Wait for drop-in animation, then start bar fill
         const dropTimeout = setTimeout(() => {
             setAnimateBar(true);
@@ -58,23 +68,33 @@ export default function SubProgress() {
 
 
     // Determine color based on progress
-    let barColor = "bg-[#4caf50]"; // green
-    if (progress >= 100) {
+    let barColor = "bg-blue-500";
+    let label = "Active";
+    if (!total || total <= 0) {
+        barColor = "bg-gray-400";
+        label = "Subscribe";
+    } else if (progress >= 100) {
         barColor = "bg-red-600";
+        label = "Expired";
     } else if (progress >= 70) {
         barColor = "bg-orange-500";
+        label = "Active";
     }
 
+    // Optional: bounce in with keyframes using tween
     return (
         <motion.div
-            className="w-full max-w-xl mx-auto bg-gradient-to-r from-gray-200 to-gray-100 rounded-2xl shadow-lg p-2 my-5"
+            className="w-full max-w-xl mx-auto bg-gradient-to-r from-gray-200 to-gray-100 rounded-2xl shadow-lg p-2 mb-20 sm:-mb-32"
             initial={{ y: -140, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 60, damping: 7, delay: 0.3, duration: 1.1 }}
+            animate={{ y: [ -140, 0, -20, 0 ] , opacity: 1 }}
+            transition={{
+                y: { type: "tween", duration: 1.1, ease: "easeOut" },
+                opacity: { duration: 0.7, delay: 0.1 }
+            }}
         >
             <div className="flex justify-between items-center mb-2 px-2">
                 <span className="text-gray-700 font-semibold text-lg">Subscription Progress</span>
-                <span className="text-gray-600 text-base">{Math.round(progress).toFixed(1)}%</span>
+                <span className="text-gray-600 text-base">{!total || total <= 0 ? '--' : Math.round(progress).toFixed(1) + '%'}</span>
             </div>
             <div className="relative w-full h-8 rounded-xl overflow-hidden bg-gray-300">
                 <motion.div
@@ -84,12 +104,7 @@ export default function SubProgress() {
                     transition={{ duration: 1.2, delay: 0.15, type: "tween", ease: "easeInOut" }}
                     style={{ minWidth: progress > 5 ? undefined : 32, transitionProperty: 'width, background-color' }}
                 >
-                    {progress > 10 && progress < 100 && (
-                        <span className="drop-shadow-lg">{progress >= 100 ? "Expired" : "Active"}</span>
-                    )}
-                    {progress >= 100 && (
-                        <span className="drop-shadow-lg">Expired</span>
-                    )}
+                    <span className="drop-shadow-lg">{label}</span>
                 </motion.div>
             </div>
         </motion.div>

@@ -84,20 +84,20 @@ export default function WelcomePage() {
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center text-center min-h-screen px-6">
+      <section className="flex flex-col items-center justify-center text-center min-h-screen px-6 -mt-10">
         <motion.img
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           src="/images/welcomeLogo.png"
           alt="WeSigned Logo"
-          className="w-50 h-50 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 max-w-full object-contain mb-3 drop-shadow-lg"
+          className="w-54 h-54 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 max-w-full object-contain mb-3 drop-shadow-lg"
         />
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-4xl md:text-6xl font-bold text-[#1965a7] mb-4 -mt-10 min-h-[3.5rem] md:min-h-[4.5rem]"
+          className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1965a7] mb-4 -mt-10 md:-mt-20 min-h-[3.5rem] md:min-h-[4.5rem]"
         >
           <TypingAnimation text="WeSigned — Smart, Secure, Simple Attendance" speed={55} />
         </motion.h1>
@@ -105,7 +105,7 @@ export default function WelcomePage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="text-lg md:text-xl text-gray-600 max-w-2xl mb-8"
+          className="text-[16px] sm:text-lg md:text-xl text-gray-600 max-w-2xl mb-8"
         >
           Taking away the stress of paper-based attendance and making it effortless for both lecturers and students.
         </motion.p>
@@ -119,8 +119,8 @@ export default function WelcomePage() {
           whileHover={{ scale: 1.05 }}
         >
           <button
-            size="lg"
-            className="bg-[#94c04c] hover:bg-[#669b11] hover:cursor-pointer text-white rounded-2xl px-8 py-6"
+            size="lg"  
+            className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all hover:cursor-pointer text-white font-semibold text-[16px] px-3 py-4 md:text-lg md:px-4 md:py-5 rounded-lg"
             onClick={scrollToFeatures}
           >
             Explore Features
@@ -153,7 +153,7 @@ export default function WelcomePage() {
           transition={{ duration: 0.6 }}
           whileHover={{ scale: 1.05 }}>
           <button
-            className="bg-[#94c04c] hover:bg-[#669b11] hover:cursor-pointer text-white font-medium rounded-2xl px-8 py-4 text-lg transition-transform transform hover:scale-105"
+            className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all hover:cursor-pointer text-white font-semibold rounded-lg px-8 py-4 text-lg"
             onClick={() => navigate("/auth")}
           >
             Get Started

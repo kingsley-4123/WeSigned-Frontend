@@ -73,7 +73,7 @@ function ExcelComparePage() {
         accept=".xlsx,.xls"
         multiple
         onChange={handleFileChange}
-        className="mb-4"
+        className="mb-4 hover:cursor-pointer"
       />
       <button
         onClick={handleCompare}

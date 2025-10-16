@@ -2,7 +2,10 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox
 
 if (workbox) {
   // Precache manifest will be injected by build tools (e.g., Vite, Webpack)
-  workbox.precaching.precacheAndRoute(self.__WB_MANIFEST || []);
+  workbox.precaching.precacheAndRoute([
+    ...(self.__WB_MANIFEST || []),
+    { url: '/images/offline.png', revision: null }
+  ]);
 
   // Runtime caching for images and static assets
   workbox.routing.registerRoute(

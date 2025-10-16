@@ -248,7 +248,7 @@ function AuthForm() {
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-12 w-12 text-green-600"
+                  className="h-12 w-12 text-[#94c04c]"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -363,7 +363,7 @@ function AuthForm() {
             whileTap={{ scale: 0.95 }}
             className="w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-400 text-white font-semibold text-base sm:text-lg shadow-md hover:from-indigo-600 hover:to-sky-500 transition-all hover:cursor-pointer"
           >
-            {isLogin ? 'Login With Passkey' : 'Sign Up'}
+            {isLogin ? 'Login With Passkey' : 'Create Passkey'}
           </motion.button>
         </motion.form>
 
@@ -383,12 +383,12 @@ function AuthForm() {
             {isLogin ? (
               <>
                 Don't have an account?{' '}
-                <span className="text-green-600 hover:underline">Sign Up</span>
+                <span className="text-[#94c04c] hover:underline">Sign Up</span>
               </>
             ) : (
               <>
                 Already have an account?{' '}
-                <span className="text-green-600 hover:underline">Login</span>
+                <span className="text-[#94c04c] hover:underline">Login</span>
               </>
             )}
           </button>

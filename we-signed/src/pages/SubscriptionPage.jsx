@@ -53,12 +53,6 @@ export default function SubscriptionPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-sky-100 to-indigo-200 flex flex-col items-center py-8 px-2">
       <div className="w-full max-w-2xl bg-white/90 rounded-2xl shadow-2xl p-6 sm:p-10 flex flex-col items-center">
-        {/* Logo */}
-        <img
-          src="/images/logo.png"
-          alt="WeSigned Logo"
-          className="w-20 h-20 sm:w-28 sm:h-28 mb-2 object-contain"
-        />
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-6 text-center">
           Choose Your Subscription Plan
         </h1>
@@ -152,7 +146,7 @@ export default function SubscriptionPage() {
           </div>
           <button
             type="submit"
-            className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-green-400 text-white font-semibold text-lg shadow-md hover:from-blue-700 hover:to-green-500 transition-all hover:cursor-pointer mt-2"
+            className="w-full py-3 rounded-lg bg-gradient-to-r from-[#273c72] to-[#94c04c] text-white font-semibold text-lg shadow-md hover:from-[#23376b] hover:to-[#669b11] hover:scale-105 transition-all hover:cursor-pointer mt-2"
           >
             Subscribe Now
           </button>

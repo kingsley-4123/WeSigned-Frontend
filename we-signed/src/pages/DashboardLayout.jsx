@@ -69,7 +69,7 @@ export default function DashboardLayout() {
             <FaUserGraduate className="text-[#94c04c] mr-5"/>
             <span>Student</span>
           </NavLink>
-          <NavLink to="lecturer" className={linkClass}>
+          <NavLink to="lecturer-page" className={linkClass}>
             <FaChalkboardTeacher className="text-[#94c04c] mr-5"/>
             <span>Lecturer</span>
           </NavLink>
@@ -116,8 +116,8 @@ export default function DashboardLayout() {
                   alt="Logo"
                   className="w-14 h-14 sm:w-16 sm:h-16 object-contain"
                 />
-                <span className="text-lg sm:text-2xl font-bold text-blue-600 tracking-tight whitespace-nowrap">
-                  We<span className="text-[#94c04c]">Signed</span>
+                <span className="text-lg sm:text-2xl font-bold text-[#273c72] tracking-tight whitespace-nowrap">
+                  WeS<span className="text-[#94c04c]">igned</span>
                 </span>
               </div>
               
@@ -140,7 +140,7 @@ export default function DashboardLayout() {
                   <span>Student</span>
                 </NavLink>
                 <NavLink
-                  to="lecturer"
+                  to="lecturer-page"
                   className={linkClass}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -205,9 +205,9 @@ export default function DashboardLayout() {
               className="md:hidden text-gray-600"
               onClick={() => setSidebarOpen(true)}
             >
-              <FaBars size={22} />
+              <FaBars size={22} className="hover:cursor-pointer"/>
             </button>
-            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-600 tracking-[0.06em]">Dashboard</h1>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-blue-700 tracking-[0.06em]">Dashboard</h1>
           </div>
 
           {/* Profile dropdown */}
