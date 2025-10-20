@@ -40,11 +40,11 @@ export const signup = (user) => service.post('/signup', { user }, { withCredenti
 
 export const verifySignup = (registrationResponse) => service.post('/signup/webauthn/register/verify', { registrationResponse }, { withCredentials: true });
 
-export const createAttendanceSession = payload => service.post('/attendance-sessions', { payload}, { withCredentials: true })
+export const createAttendanceSession = payload => service.post('/attendance-session', { payload}, { withCredentials: true })
 
-export const getAttendanceSession = specialId => service.get(`/attendance-sessions/${specialId}`, { withCredentials: true });
+export const getAttendanceSession = specialId => service.get(`/attendance-session/${specialId}`, { withCredentials: true });
 
-export const signAttendance = (specialId, studentData) => service.post(`/attendance-sessions/${specialId}/sign`, { ...studentData }, { withCredentials: true });
+export const signAttendance = (specialId, studentData) => service.post(`/attendance/${specialId}/sign`, { ...studentData }, { withCredentials: true });
 
 export const getAttendances = (specialId) => service.get(`/attendance/${specialId}`, { withCredentials: true }); 
 

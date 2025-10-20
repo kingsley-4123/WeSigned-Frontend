@@ -52,17 +52,17 @@ export default function AttendanceSession() {
       const finalDuration = duration === "custom" ? Number(customDuration) : Number(duration);
       const payload = { ...formData, duration: finalDuration };
 
-      const location = getCurrentLocation();
-      if (!location) {
+      getCurrentLocation().then((loc) => {
+        const { latitude, longitude } = loc.location;
+        payload.latitude = latitude;
+        payload.longitude = longitude;
+        console.log("Got location:", loc);
+      }).catch((err) => {
+        console.error("Location error:", err);
         showAlert("Could not get location. Please allow location access.", 'error');
         setLoading(false);
         return;
-      } else {
-        const { latitude, longitude } = location;
-        payload.latitude = latitude;
-        payload.longitude = longitude;
-        console.log("Got location:", location);
-      }
+      });
 
       console.log("Submitting:", payload);
       createAttendanceSession(payload)

@@ -1,35 +1,30 @@
 function getCurrentLocation() {
-    let latitude;
-    let longitude;
-    if ("geolocation" in navigator) {
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-            latitude = position.coords.latitude;
-            longitude = position.coords.longitude;
-
-            console.log("Latitude:", latitude);
-            console.log("Longitude:", longitude);
-
-            // You can now send this to your backend
-            // via fetch, axios, etc.
-            },
-            (error) => {
-                console.error("Error getting location:", error.message);
-                return;
-            },
-            {
-            enableHighAccuracy: true, // use GPS if available
-            timeout: 10000,           // 10 seconds timeout
-            maximumAge: 0             // don't use cached location
-            }
-        );
-    } else {
-        console.error("Geolocation is not supported by this browser.");
-        return;
-    }  
-   
-    return { latitude, longitude };
+    return new Promise((resolve, reject) => {
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    console.log("Latitude:", latitude);
+                    console.log("Longitude:", longitude);
+                    resolve({ location: { latitude, longitude } });
+                },
+                (error) => {
+                    console.error("Error getting location:", error.message);
+                    reject(error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        } else {
+            const err = new Error("Geolocation is not supported by this browser.");
+            console.error(err.message);
+            reject(err);
+        }
+    });
 }
 
 export default getCurrentLocation;

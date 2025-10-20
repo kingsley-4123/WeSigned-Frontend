@@ -47,7 +47,6 @@ export default function SubProgress() {
 
     // Animate drop-in, then fill bar
     useEffect(() => {
-        showAlert("Subscription status updated", "error");
         // Wait for drop-in animation, then start bar fill
         const dropTimeout = setTimeout(() => {
             setAnimateBar(true);
