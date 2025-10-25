@@ -92,7 +92,7 @@ export default function App() {
             {/* Normal flow when online */}
             <Route path="/" element={<WelcomePage />} />
             <Route path="/auth" element={<AuthForm />} />
-            <Route path="success" element={<SuccessPage />} />
+            <Route path="/success" element={<SuccessPage />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route path="lecturer/attendance-session" element={<AttendanceSession />} />  
               <Route path="student/attendance/:id" element={<AttendanceDetail />} />

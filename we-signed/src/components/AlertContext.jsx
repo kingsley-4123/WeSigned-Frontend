@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle, XCircle, Info, AlertTriangle } from "lucide-react";
+import { CheckCircle, XCircle, Info, AlertTriangle, X } from "lucide-react";
 
 const AlertContext = createContext();
 
@@ -28,18 +28,30 @@ export const AlertProvider = ({ children }) => {
     message: "",
     type: "info",
     visible: false,
+    duration: 3000, // default to 3s
+    closable: false, // default no close button
   });
 
-  const showAlert = useCallback((message, type = "info") => {
-    setAlert({ message, type, visible: true });
+  const showAlert = useCallback(
+    (message, type = "info", options = {}) => {
+      const { duration = 3000, closable = false } = options;
 
-    // Auto close after 3 seconds
-    setTimeout(() => {
-      setAlert((prev) => ({ ...prev, visible: false }));
-    }, 3000);
-  }, []);
+      setAlert({ message, type, visible: true, duration, closable });
 
-  // Define a special shake animation for error alerts
+      // Only auto close if not closable
+      if (!closable && duration > 0) {
+        setTimeout(() => {
+          setAlert((prev) => ({ ...prev, visible: false }));
+        }, duration);
+      }
+    },
+    []
+  );
+
+  const closeAlert = () => {
+    setAlert((prev) => ({ ...prev, visible: false }));
+  };
+
   const getAnimation = (type) => {
     return {
       initial: { scale: 0.8, opacity: 0, y: -20 },
@@ -72,12 +84,23 @@ export const AlertProvider = ({ children }) => {
               }}
               className={`${
                 alertStyles[alert.type].bg
-              } text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center max-w-sm w-[80%]`}
+              } text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center justify-between max-w-sm w-[80%]`}
             >
-              {alertStyles[alert.type].icon}
-              <span className="font-medium text-center flex-1">
-                {alert.message}
-              </span>
+              <div className="flex items-center flex-1">
+                {alertStyles[alert.type].icon}
+                <span className="font-medium text-center flex-1">
+                  {alert.message}
+                </span>
+              </div>
+
+              {alert.closable && (
+                <button
+                  onClick={closeAlert}
+                  className="ml-3 text-white/80 hover:text-white transition"
+                >
+                  <X className="w-5 h-5 bg-red-500 hover:cursor-pointer" />
+                </button>
+              )}
             </motion.div>
           </motion.div>
         )}

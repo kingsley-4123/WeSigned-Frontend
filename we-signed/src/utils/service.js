@@ -5,12 +5,14 @@ const service = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-});
+}); 
+
 service.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
+        console.log('INTERCEPTOR', token);
         if (token) {
-            config.headers.Authorization = `x-auth-token ${token}`;
+            config.headers['x-auth-token'] = token;
         }
         return config;
     },
@@ -24,15 +26,15 @@ service.interceptors.response.use(
     },
     (error) => {
         if (error.response && error.response.status === 401) {
-            // Handle unauthorized access, e.g., redirect to login
+            // Handle unauthorized access, e.g., redirect
             localStorage.removeItem('token');
-            window.location.href = '/login';
+            window.location.href = '/auth';
         }
         return Promise.reject(error);
     }
 );
 
-export const login = (email) => service.post('/login', { email }, { withCredentials: true });
+export const login = (payload) => service.post('/login', { ...payload }, { withCredentials: true });
 
 export const verifyLogin = (loginResponse) => service.post('/login/webauthn/authenticate/verify', { loginResponse }, { withCredentials: true });
 
@@ -51,6 +53,8 @@ export const getAttendances = (specialId) => service.get(`/attendance/${specialI
 export const sendOTP = (email) => service.post('/otp/send', { email }, { withCredentials: true });
 
 export const verIfyOTP = (otp) => service.post('/otp/verify', { otp }, { withCredentials: true });
+
+export const updatePassword = (email, newPassword) => service.post('/otp/update-password', { email, newPassword }, { withCredentials: true });
 
 export const reRegister = (email) => service.post('/re-register', { email }, { withCredentials: true });
 

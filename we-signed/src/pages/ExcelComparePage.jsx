@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import * as XLSX from 'xlsx';
 import {useAlert} from '../components/AlertContext';
 
@@ -10,12 +10,26 @@ function ExcelComparePage() {
 
   const { showAlert } = useAlert();
 
+  useEffect(() => {
+    showAlert("Import multiple Attendance you've collected and click the compare button to filter it for you showing how many times a name and reg no appeared in the docs. ", "info", {closable: true});
+  }, []);
+
   // Handle file input
   const handleFileChange = (e) => {
-    setFiles(Array.from(e.target.files));
-    setResult([]);
-    setSelecting(false);
-    document.body.style.cursor = '';
+    const input = e.target;
+    const selectedFiles = Array.from(input.files || []);
+
+    if (selectedFiles.length === 0) {
+      // Nothing selected — reset
+      setSelecting(false);
+      document.body.style.cursor = '';
+    } else {
+      // Files selected
+      setFiles(selectedFiles);
+      setResult([]);
+      setSelecting(false);
+      document.body.style.cursor = '';
+    }
   };
 
   // Parse and compare logic
@@ -78,8 +92,7 @@ function ExcelComparePage() {
       const ws = XLSX.utils.json_to_sheet(result.map(r => ({
         Name: r.name,
         'Reg No': r.reg,
-        Count: r.count,
-        '✔': '✔'.repeat(r.count),
+        Count: '✔'.repeat(r.count),
       })));
       // Set column widths
       ws['!cols'] = [
@@ -116,6 +129,16 @@ function ExcelComparePage() {
             onClick={() => {
               setSelecting(true);
               document.body.style.cursor = 'wait';
+
+              const handleFocus = () => {
+                const input = document.getElementById("excel-upload");
+                if (input && (!input.files || input.files.length === 0)) {
+                  setSelecting(false);
+                  document.body.style.cursor = '';
+                }
+                window.removeEventListener('focus', handleFocus);
+              };
+              window.addEventListener('focus', handleFocus);
             }}
           >
             {selecting ? 'Loading...' : 'Select Excel Files'}
@@ -127,7 +150,7 @@ function ExcelComparePage() {
       <button
         onClick={handleCompare}
         disabled={files.length < 2 || loading}
-        className="px-6 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 disabled:opacity-50"
+        className="px-6 py-2 bg-indigo-500 text-white rounded-lg shadow hover:bg-indigo-700 hover:cursor-pointer  disabled:opacity-50"
       >
         {loading ? 'Comparing...' : 'Compare & Find Matches'}
       </button>
@@ -158,7 +181,7 @@ function ExcelComparePage() {
           </div>
           <button
             onClick={handleExport}
-            className="mt-4 px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            className="mt-4 px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 hover:cursor-pointer"
           >
             Export to Excel
           </button>

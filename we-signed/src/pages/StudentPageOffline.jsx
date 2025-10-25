@@ -27,7 +27,7 @@ export default function Student() {
 
   async function signAttendance() {
     const data = await getDataById('user', 1);
-    const { userId, surname, middlename, firstname } = data.user;
+    const { userId, surname, middlename, firstname } = data;
     const name = `${surname} ${middlename ? middlename + ' ' : ''}${firstname}`;
     console.log("encrypted student ID:", userId); 
 

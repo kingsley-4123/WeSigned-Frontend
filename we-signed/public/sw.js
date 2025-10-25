@@ -1,5 +1,10 @@
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.5.4/workbox-sw.js');
 
+self.skipWaiting(); // Activate new SW immediately
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim()); // Take control of all pages right away
+});
+
 if (workbox) {
   // Precache manifest will be injected by build tools (e.g., Vite, Webpack)
   workbox.precaching.precacheAndRoute([
@@ -9,8 +14,8 @@ if (workbox) {
 
   // Runtime caching for images and static assets
   workbox.routing.registerRoute(
-    ({request}) => request.destination === 'image' || request.destination === 'style' || request.destination === 'script',
-    new workbox.strategies.CacheFirst({
+    ({request}) => request.destination === 'image' || request.destination === 'style' || request.destination === 'script' || request.destination === 'document',
+    new workbox.strategies.NetworkFirst({
       cacheName: 'weSigned-static-assets-v1',
       plugins: [
         new workbox.expiration.ExpirationPlugin({
@@ -40,11 +45,6 @@ if (workbox) {
 
 
 // ...existing code for sync, IndexedDB, and other custom logic...
-
-self.addEventListener("activate", (event) => {
-    event.waitUntil(self.clients.claim());
-});
-
 
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-attendance') {

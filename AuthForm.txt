@@ -1,9 +1,11 @@
 import React, { useState, useRef} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { putData, getAllData, deleteData } from '../utils/db.js';
-import { signup, login, sendOTP, verIfyOTP, updatePassword} from '../utils/service.js';
+import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { putData, getDataById } from '../utils/db.js';
+import { signup, verifySignup, login, verifyLogin, sendOTP, verIfyOTP, reRegister } from '../utils/service.js';
 import { useNavigate } from 'react-router-dom';
-import { encryptText, decryptText } from '../utils/cryptoUtils.js';
+import { encryptText } from '../utils/cryptoUtils.js';
+import toast from 'react-hot-toast';
 import PasswordInput from '../components/PasswordComponent.jsx';
 import { useAlert } from '../components/AlertContext.jsx';
 
@@ -23,9 +25,6 @@ function AuthForm() {
   const [showFallback, setShowFallback] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState(Array(6).fill("")); // 6-digit OTP
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [showNewPasswordInput, setShowNewPasswordInput] = useState(false);
   const inputRefs = useRef([]);
 
   const navigate = useNavigate();
@@ -57,75 +56,74 @@ function AuthForm() {
 
         const payload = { firstname, middlename, surname, email, password };
         const signupRes = await signup(payload);
+        const result = signupRes.data.options;
+        const userId = signupRes.data.userID;
+        
+        console.log("Options", signupRes);
+        const registrationResponse = await startRegistration({ optionsJSON: result });
+        console.log("regRes", registrationResponse);
+        if (registrationResponse.error) {
+          showAlert(registrationResponse.error, 'error');
+          setLoading(false);
+          return;
+        }
 
-        if(signupRes.data.ok){
-          const userId = signupRes.data.userID;
-          const token = signupRes.data.token;
+        const response = await verifySignup(registrationResponse);
+        if (response.data.ok) {
           const encryptedUserId = await encryptText(userId); 
           payload.userId = encryptedUserId;
           const user = payload;
           console.log("Payload", payload);
           console.log("User", user);
           await putData('user', user);
-          localStorage.setItem('token', token);
-          setSuccess(true);
           showAlert('Registration successful!', 'success');
+          localStorage.setItem('token', response.headers['x-auth-token']);
+          setSuccess(true);
           setTimeout(() => navigate('/dashboard'), 1500);
-
-        } else {
-          localStorage.removeItem('token');
-          setError('Registration failed!');
-        }
-
+        } else localStorage.removeItem('token');
       } catch (err) {
-        console.error("ERROR", err.response ? err.response.data : err);
-        if (err.response) showAlert(err.response.data.message, 'warning');
+        console.error(err.response ? err.response.data : err);
+        setError('Something went wrong!');
       }
     } else {
-      const { email, password } = form;
-      if (!email || !password) {
-        setError('All fields are required');
+      const { email } = form;
+      if (!email) {
+        setError('Email is required');
         setLoading(false);
         return;
       }
 
       try {
-        const payload = { email, password };
-        const loginRes = await login(payload);
-        console.log('LOGINRES', loginRes);
+        const loginRes = await login(email);
+        const result = loginRes.data.authOptions;
+        console.log('authOptions', result);
+        const authResponse = await startAuthentication({ optionsJSON: result });
+        console.log('authResponse', authResponse);
+        if (authResponse.error) {
+          showAlert(authResponse.error, 'error');
+          setLoading(false);
+          return;
+        }
 
-        if (loginRes.data.ok) {
+        const response = await verifyLogin(authResponse);
+        if (response.data) {
+          localStorage.setItem('token', response.headers['x-auth-token']);
+          // Check if user data exists in IndexedDB, if not, restore it
           const userId = loginRes.data.userId;
           const userData = loginRes.data.user;
-          const token = loginRes.data.token;
-          const existingUsers = await getAllData('user');
-          const existingUser = existingUsers.find((u) => u.email === email);
-          const decryptedId = await decryptText(existingUser.userId); // The error
-          
+          const existingUser = await getDataById('user', 1);
           if (!existingUser && userData) {
-            const encryptedText = await encryptText(userId);
-            await putData('user', { ...userData, userId: encryptedText });
-            localStorage.setItem('token', token);
-            setSuccess(true);
-            setTimeout(() => navigate('/dashboard'), 1500);
-          } else if (decryptedId !== userId) {
-            showAlert("This is not the registered device.", 'error');
-            setLoading(false);
-            return;
-          } else {
-            localStorage.setItem('token', token);
-            console.log('TOKEN', token);
-            setSuccess(true);
-            setTimeout(() => navigate('/dashboard'), 1500);
+            await putData('user', { ...userData, userId: encryptText(userId) });
           }
-          
-        } else showAlert(loginRes.data.message, 'error');
-
+          setSuccess(true);
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else localStorage.removeItem('token');
       } catch (err) {
-        console.error('LOGIN_ERROR', err.response ? err.response.data : err);
-        if (err.response) {
-          showAlert(err.response.data.message, 'warning');
-          return;
+        if (err.name === "NotAllowedError") {
+          setShowFallback(true); // Show popup
+        } else {
+          console.error("Unexpected error:", err);
+          showAlert("Unexpected error", 'error');
         }
       }
     }
@@ -158,24 +156,17 @@ function AuthForm() {
   const handleSendOtp = async () => {
     try {
       const { email } = form;
-      const existingUsers = await getAllData('user');
-      const existingUser = await existingUsers.find((u) => u.email === email);
-      if(!existingUser){
-        showAlert('Email not registered.', 'error');
-        return;
-      }
       const res = await sendOTP(email);
-      if(!res.data.ok) {
-        showAlert(res.data.message, 'error');
-        setError("Email sending issues.");
-        return;
-      }
       showAlert(res.data.message, 'success');
       console.log(res.data);
       setShowOtpInput(true);
     } catch (err) {
-      if(err.response) showAlert(err.response.data.message, 'warning'); 
+      showAlert("Mail not sent Successfully.", 'error');
+      setError("Email sending issues.");
+      console.log(err);
     }
+    
+
   };
 
   const handleVerifyOtp = async () => {
@@ -189,36 +180,31 @@ function AuthForm() {
         setShowFallback(false);
         setShowOtpInput(false);
         setOtp(Array(6).fill(""));
-        setShowNewPasswordInput(true);
-      } else {
-        showAlert(res.data.message, 'error');
-      }
-    } catch (err) {
-      if (err.response) {
-        showAlert(err.response.data.message, 'error'); 
-      }
-    }
-  };
+        const reReg = await reRegister(res.data.email);
+        const result = reReg.data.options;
+        console.log("Options", result);
 
-  const handleUpdatePassword = async () => {
-    try {
-      if (newPassword !== confirmNewPassword) {
-        showAlert("Passwords do not match.", 'error');
-        return;
-      }
-      const res = await updatePassword(form.email, newPassword);
-      if (res.data.ok) {
-        showAlert(res.data.message, 'success');
-        setShowNewPasswordInput(false);
-        setNewPassword('');
-        setConfirmNewPassword('');
+        const registrationResponse = await startRegistration({optionsJSON: result});
+        console.log("regRes", registrationResponse);
+        if (registrationResponse.error) {
+          setError(registrationResponse.error);
+          setLoading(false);
+          return;
+        }
+
+        const response = await verifySignup(registrationResponse);
+        if (response.data) {
+          localStorage.setItem('token', response.headers['x-auth-token']);
+          setSuccess(true);
+          setTimeout(() => navigate('/dashboard'), 1500);
+        } else localStorage.removeItem('token');
       } else {
         showAlert(res.data.message, 'error');
       }
-    } catch (err) {
-      if (err.response) {
-        showAlert(err.response.data.message, 'error');
-      }
+    }catch(err){
+      showAlert("Something is wrong.", 'error');
+      setError("Something is wrong.")
+      console.log(err);
     }
   };
 
@@ -350,19 +336,6 @@ function AuthForm() {
               onChange={handleChange}
             />
           </div>
-          {isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Password</label>
-              <PasswordInput
-                name="password"
-                placeholder='Password'
-                value={form.password}
-                onChange={handleChange}
-                autoComplete="new-password"
-              />
-            </div>
-          )}
-          
           {!isLogin && (
             <div>
               <label className="block text-sm font-medium text-indigo-700 mb-1">Password</label>
@@ -394,7 +367,7 @@ function AuthForm() {
             whileTap={{ scale: 0.95 }}
             className="w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-400 text-white font-semibold text-base sm:text-lg shadow-md hover:from-indigo-600 hover:to-sky-500 transition-all hover:cursor-pointer"
           >
-            {isLogin ? 'Login' : 'Sign Up'}
+            {isLogin ? 'Login With Passkey' : 'Create Passkey'}
           </motion.button>
         </motion.form>
 
@@ -423,18 +396,6 @@ function AuthForm() {
               </>
             )}
           </button>
-            
-          {isLogin && (
-            <>
-              <hr className='mt-4'/>
-              <button
-                className="block mt-4 text-[#94c04c] hover:underline font-medium cursor-pointer"
-                onClick={() => setShowFallback(true)}
-              >
-                Forgot Password?
-              </button>
-            </>
-          )}
         </motion.div>
       </motion.div>
 
@@ -505,41 +466,6 @@ function AuthForm() {
               >
                 { showOtpInput ? "verify code" : "verify email"}
               </button>
-
-              {showNewPasswordInput && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-indigo-700 mb-1">New Password</label>
-                    <PasswordInput
-                      name="newPassword"
-                      placeholder='Password'
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      autoComplete="new-password"
-                    />
-                  </div>
-                  <div className="mb-4 text-left">
-                    <label className="block text-sm font-medium text-indigo-700 mb-1">Confirm New Password</label>
-                    <input
-                      type="password"
-                      name="confirmNewPassword"
-                      className="w-full px-3 sm:px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900 text-base sm:text-lg"
-                      placeholder="Confirm new password"
-                      value={confirmNewPassword}
-                      onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    />
-                  </div>
-                </>
-              )}
-
-              {showNewPasswordInput && (
-                <button
-                  onClick={handleUpdatePassword}
-                  className="bg-green-500 mt-2 text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer text-base sm:text-lg"
-                >
-                  Update Password
-                </button>
-              )}  
             </motion.div>
           </>
         )}
