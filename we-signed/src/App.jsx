@@ -27,6 +27,7 @@ import NotificationPrompt from './components/NotificationPrompt';
 import ExcelComparePage from './pages/ExcelComparePage';
 import OfflineHeader from "./pages/OfflineHeader";
 import SubscriptionPage from "./pages/SubscriptionPage";
+import Reregistration from "./pages/Reregistration";
 import { AlertProvider } from "./components/AlertContext";
 
 // Wrap the entire app in AlertProvider to provide alert context
@@ -92,6 +93,7 @@ export default function App() {
             {/* Normal flow when online */}
             <Route path="/" element={<WelcomePage />} />
             <Route path="/auth" element={<AuthForm />} />
+            <Route path="reregistration" element={<Reregistration />} />
             <Route path="/success" element={<SuccessPage />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route path="lecturer/attendance-session" element={<AttendanceSession />} />  

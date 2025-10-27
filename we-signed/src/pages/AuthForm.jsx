@@ -14,7 +14,8 @@ function AuthForm() {
     middlename: '',
     surname: '',
     email: '',
-    password: ''
+    password: '',
+    school: ''
   });
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -43,7 +44,7 @@ function AuthForm() {
 
     if (!isLogin) {
       try {
-        const { firstname, middlename, surname, email, password } = form;
+        const { firstname, middlename, surname, email, password, school } = form;
         if (!firstname || !middlename || !surname || !email || !password) {
           setError('All fields are required');
           setLoading(false);
@@ -55,13 +56,15 @@ function AuthForm() {
           return;
         }
 
-        const payload = { firstname, middlename, surname, email, password };
+        const payload = { firstname, middlename, surname, email, password, school };
         const signupRes = await signup(payload);
 
         if(signupRes.data.ok){
           const userId = signupRes.data.userID;
           const token = signupRes.data.token;
           const encryptedUserId = await encryptText(userId); 
+          const encryptedPassword = await encryptText(password);
+          payload.password = encryptedPassword;
           payload.userId = encryptedUserId;
           const user = payload;
           console.log("Payload", payload);
@@ -114,13 +117,13 @@ function AuthForm() {
             return;
           } else {
             localStorage.setItem('token', token);
-            console.log('TOKEN', token);
             setSuccess(true);
             setTimeout(() => navigate('/dashboard'), 1500);
           }
           
-        } else showAlert(loginRes.data.message, 'error');
-
+        } else {
+          showAlert(loginRes.data.message, 'error');
+        }
       } catch (err) {
         console.error('LOGIN_ERROR', err.response ? err.response.data : err);
         if (err.response) {
@@ -130,7 +133,7 @@ function AuthForm() {
       }
     }
     setLoading(false);
-    setForm({ firstname: '', middlename: '', surname: '', email: '', password: '' });
+    setForm({ firstname: '', middlename: '', surname: '', email: '', password: '', school: '' });
     setConfirmPassword('');
   };
 
@@ -156,37 +159,41 @@ function AuthForm() {
   };
 
   const handleSendOtp = async () => {
+    setLoading(true);
     try {
       const { email } = form;
       const existingUsers = await getAllData('user');
       const existingUser = await existingUsers.find((u) => u.email === email);
       if(!existingUser){
         showAlert('Email not registered.', 'error');
+        setLoading(false);
         return;
       }
       const res = await sendOTP(email);
       if(!res.data.ok) {
         showAlert(res.data.message, 'error');
         setError("Email sending issues.");
+        setLoading(false);
         return;
       }
-      showAlert(res.data.message, 'success');
-      console.log(res.data);
+      showAlert('OTP sent successfully.', 'success');
+      console.log('SEND_OTP_RESPONSE', res.data.message);
       setShowOtpInput(true);
     } catch (err) {
       if(err.response) showAlert(err.response.data.message, 'warning'); 
     }
+    setLoading(false);
   };
 
   const handleVerifyOtp = async () => {
+    setLoading(true);
     try {
       const otpValue = otp.join("");
       console.log(`OTP: ${otpValue}`);
       const res = await verIfyOTP(otpValue);
       console.log(res);
       if (res.data.success) {
-        showAlert(res.data.message, 'success');
-        setShowFallback(false);
+        showAlert(res.data.message, 'success')
         setShowOtpInput(false);
         setOtp(Array(6).fill(""));
         setShowNewPasswordInput(true);
@@ -198,20 +205,30 @@ function AuthForm() {
         showAlert(err.response.data.message, 'error'); 
       }
     }
+    setLoading(false);
   };
 
   const handleUpdatePassword = async () => {
+    setLoading(true);
     try {
       if (newPassword !== confirmNewPassword) {
         showAlert("Passwords do not match.", 'error');
+        setLoading(false);
         return;
       }
       const res = await updatePassword(form.email, newPassword);
       if (res.data.ok) {
+        const existingUsers = await getAllData('user');
+        const existingUser = existingUsers.find((u) => u.email === form.email);
+        if (!existingUser) {
+          showAlert("User not found.", 'error');
+          setLoading(false);
+          return;
+        }
+        const encryptedPassword = await encryptText(newPassword);
+        existingUser.password = encryptedPassword;
+        await putData("user", existingUser);
         showAlert(res.data.message, 'success');
-        setShowNewPasswordInput(false);
-        setNewPassword('');
-        setConfirmNewPassword('');
       } else {
         showAlert(res.data.message, 'error');
       }
@@ -220,6 +237,12 @@ function AuthForm() {
         showAlert(err.response.data.message, 'error');
       }
     }
+    setShowNewPasswordInput(false);
+    setShowFallback(false);
+    setForm((prev) => ({ ...prev, email: ''}));
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setLoading(false);
   };
 
   const fadeIn = {
@@ -321,7 +344,7 @@ function AuthForm() {
         >
           {!isLogin && (
             <>
-              {['firstname', 'middlename', 'surname'].map((field) => (
+              {['Firstname:', 'Middlename:', 'Surname:'].map((field) => (
                 <div key={field}>
                   <label className="block text-sm font-medium text-indigo-700 mb-1">
                     {field.charAt(0).toUpperCase() + field.slice(1)}
@@ -339,7 +362,7 @@ function AuthForm() {
             </>
           )}
           <div>
-            <label className="block text-sm font-medium text-indigo-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-indigo-700 mb-1">Email:</label>
             <input
               type="email"
               name="email"
@@ -362,10 +385,22 @@ function AuthForm() {
               />
             </div>
           )}
-          
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Password</label>
+              <label className="block text-sm font-medium text-indigo-700 mb-1">School: <span className='text-gray-400'> (optional) </span></label>
+              <input
+                type="text"
+                name='school'
+                className="w-full px-3 sm:px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900 text-base sm:text-lg"
+                placeholder="Your School Name."
+                value={form.school}
+                onChange={handleChange}
+              />
+            </div>
+          )}
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-medium text-indigo-700 mb-1">Password:</label>
               <PasswordInput
                 name="password"
                 placeholder='Password'
@@ -377,7 +412,7 @@ function AuthForm() {
           )}
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Confirm Password</label>
+              <label className="block text-sm font-medium text-indigo-700 mb-1">Confirm Password:</label>
               <input
                 type="password"
                 className="w-full px-3 sm:px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900 text-base sm:text-lg"
@@ -426,13 +461,21 @@ function AuthForm() {
             
           {isLogin && (
             <>
-              <hr className='mt-4'/>
-              <button
-                className="block mt-4 text-[#94c04c] hover:underline font-medium cursor-pointer"
-                onClick={() => setShowFallback(true)}
-              >
-                Forgot Password?
-              </button>
+              <hr className='mt-4 text-gray-500 text-[20px] font-bold' />
+              <div className='flex justify-between'>
+                <button
+                  className="block mt-4 text-[#669b11] hover:underline font-medium cursor-pointer"
+                  onClick={() => setShowFallback(true)}
+                >
+                  Forgot Password?
+                </button>
+                <button
+                  className="block mt-4 text-[#669b11] hover:underline font-medium cursor-pointer"
+                  onClick={() => navigate('/reregistration')}
+                >
+                  Re-register
+                </button>
+              </div>
             </>
           )}
         </motion.div>
@@ -458,25 +501,32 @@ function AuthForm() {
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", stiffness: 200, damping: 20 }}
             >
-              <h2 className="text-lg font-semibold mb-2">Having issues logging in?</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                {!showOtpInput ? "Don’t worry, we’ll get you up and running in no time. Maybe this wasn’t the device you registered with":`Enter the code sent to ${form.email}`}
-                <span className='text-sm text-indigo-500'>{!showOtpInput ? "Enter your Email to proceed." : ""}</span>
-              </p>
+              {loading && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center rounded-2xl z-50">
+                  <Spinner />
+                </div>
+              )}
 
-              {!showOtpInput && (
-                <div> 
-                  <label className="block text-sm font-medium text-indigo-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    className="w-full px-3 sm:px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900 text-base sm:text-lg"
-                    placeholder="you@email.com"
-                    value={form.email}
-                    autoComplete="email"
-                    onChange={handleChange}
-                  />
-                </div> 
+              <h2 className="text-lg font-semibold mb-2">Having issues logging in?</h2>
+              {!showNewPasswordInput && !showOtpInput && (
+                <>
+                  <p className="text-sm text-gray-600 mb-4">
+                    {!showOtpInput ? "Don’t worry, we’ll help you regain access shortly.":`Enter the code sent to ${form.email}`}
+                    <span className='text-sm text-indigo-500'>{!showOtpInput ? " Enter your Email to proceed." : ""}</span>
+                  </p>
+                  <div className='mb-4 text-left'> 
+                    <label className="block text-sm font-medium text-indigo-700 mb-1">Email:</label>
+                    <input
+                      type="email"
+                      name="email"
+                      className="w-full px-3 sm:px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900 text-base sm:text-lg"
+                      placeholder="you@email.com"
+                      value={form.email}
+                      autoComplete="email"
+                      onChange={handleChange}
+                    />
+                  </div> 
+                </>
               )}  
 
               {/* Multi-digit OTP Input */}
@@ -498,18 +548,19 @@ function AuthForm() {
                   </div>
                 </>
               )}
-
-              <button
-                onClick={!showOtpInput ? handleSendOtp : handleVerifyOtp}
-                className="bg-green-500 mt-2 text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer text-base sm:text-lg"
-              >
-                { showOtpInput ? "verify code" : "verify email"}
-              </button>
+              {!showNewPasswordInput && (
+                <button
+                  onClick={!showOtpInput ? handleSendOtp : handleVerifyOtp}
+                  className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all mt-2 font-semibold text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer text-base sm:text-lg"
+                >
+                  { showOtpInput ? "verify code" : "verify email"}
+                </button>
+              )}
 
               {showNewPasswordInput && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-indigo-700 mb-1">New Password</label>
+                  <div className='mb-4 text-left'>
+                    <label className="block text-sm font-medium text-indigo-700 mb-1">New Password:</label>
                     <PasswordInput
                       name="newPassword"
                       placeholder='Password'
@@ -519,7 +570,7 @@ function AuthForm() {
                     />
                   </div>
                   <div className="mb-4 text-left">
-                    <label className="block text-sm font-medium text-indigo-700 mb-1">Confirm New Password</label>
+                    <label className="block text-sm font-medium text-indigo-700 mb-1">Confirm New Password:</label>
                     <input
                       type="password"
                       name="confirmNewPassword"
@@ -535,7 +586,7 @@ function AuthForm() {
               {showNewPasswordInput && (
                 <button
                   onClick={handleUpdatePassword}
-                  className="bg-green-500 mt-2 text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer text-base sm:text-lg"
+                  className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all mt-2 text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer text-base sm:text-lg"
                 >
                   Update Password
                 </button>
