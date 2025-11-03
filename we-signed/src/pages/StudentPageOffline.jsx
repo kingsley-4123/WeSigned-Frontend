@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { saveSignIn, putData, getDataById } from "../utils/db.js";
+import { saveSignIn, putData, getAllData } from "../utils/db.js";
 import { Html5Qrcode } from 'html5-qrcode';
 import FlippingNumber from "../components/FlippingNumber";
 import {decryptText} from "../utils/cryptoUtils.js";
 import { motion } from "framer-motion";
+import { useAlert } from "../components/AlertContext.jsx";  
+import {getRandomGradient} from "../utils/randomGradients.js"
+
 
 export default function Student() {
   const [sessionId, setSessionId] = useState("");
@@ -15,19 +18,16 @@ export default function Student() {
   const [durationUnit, setDurationUnit] = useState("minutes");
   const timerRef = useRef();
 
-  const gradients = [
-  "from-indigo-500 to-sky-400",
-  "from-purple-500 to-pink-400",
-  "from-green-500 to-emerald-400",
-  "from-orange-500 to-yellow-400",
-  "from-rose-500 to-red-400",
-  "from-teal-500 to-cyan-400",
-];
-
+  const savedUserEmail = JSON.parse(localStorage.getItem('offlineUserEmail'));
+  const email = savedUserEmail || '';
 
   async function signAttendance() {
-    const data = await getDataById('user', 1);
-    const { userId, surname, middlename, firstname } = data;
+    const users = await getAllData('user');
+    const user = users.find(u => u.email === email);
+    if (!user) {
+      return showAlert("User not found. Please login again.", "warning");
+    }
+    const { userId, surname, middlename, firstname } = user;
     const name = `${surname} ${middlename ? middlename + ' ' : ''}${firstname}`;
     console.log("encrypted student ID:", userId); 
 
@@ -43,7 +43,7 @@ export default function Student() {
     };
     console.log("Decrypted student ID:", signin.studentId);
 
-    const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+    const randomGradient = getRandomGradient();
     const newCard = {
       title: scannedData.attendanceName,
       lecturer: null,

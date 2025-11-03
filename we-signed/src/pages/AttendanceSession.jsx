@@ -2,7 +2,6 @@ import { useState } from "react";
 import { createAttendanceSession } from "../utils/service.js";
 import getCurrentLocation from "../utils/location.js";
 import { motion } from "framer-motion";
-import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { FaClock, FaRulerCombined, FaCheck } from "react-icons/fa";
 import { useAlert } from "../components/AlertContext.jsx";
@@ -41,7 +40,7 @@ export default function AttendanceSession() {
     return e;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const eObj = validate();
@@ -52,46 +51,43 @@ export default function AttendanceSession() {
       const finalDuration = duration === "custom" ? Number(customDuration) : Number(duration);
       const payload = { ...formData, duration: finalDuration };
 
-      getCurrentLocation().then((loc) => {
-        const { latitude, longitude } = loc.location;
-        payload.latitude = latitude;
-        payload.longitude = longitude;
-        console.log("Got location:", loc);
-      }).catch((err) => {
-        console.error("Location error:", err);
-        showAlert("Could not get location. Please allow location access.", 'error');
+      const loc = await getCurrentLocation();
+      if(!loc || !loc.location){
+        showAlert("Could not get your location. Ensure location services are enabled and try again.", 'error');
         setLoading(false);
         return;
-      });
+      }
+      const { latitude, longitude } = loc.location;
+      payload.latitude = latitude;
+      payload.longitude = longitude;
+      console.log("Got location:", loc);
 
       console.log("Submitting:", payload);
-      createAttendanceSession(payload)
-        .then((res) => {
-          showAlert("Attendance session created successfully!", 'success');
-          console.log("Created session:", res.data);
-          const { attSession, lecturer, date } = res.data;
-          alert(`Your Attendance Session ID is ${attSession.special_id}. Share it with your students.`);
-          navigate("lecturer/timer", { state: {attSession, lecturer, date} });  
-          
-        })
-        .catch((err) => {
-          console.error("Error creating session:", err.response ? err.response.data : err);
-          showAlert("Failed to create session. Try again.", 'error');
-          setLoading(false);
-        });   
-
-      
-    } catch (err) {
-      console.error("Error in Session", err);
-      showAlert("An unexpected error occurred. Try again.", 'error');
-      setLoading(false);
-    }
-    
-    setTimeout(() => {
-      setLoading(false);
+      const res = await createAttendanceSession(payload);
+      if (!res.data.success) {
+        showAlert(res.data.message, "error");
+        setLoading(false);
+        return;
+      }
+      console.log("Created session:", res.data);
+      const { attSession, lecturer, date } = res.data;
+      const attSessionObj = {attSession, lecturer, date};
       setSuccess(true);
-      setTimeout(() => setSuccess(false), 1800);
-    }, 900);
+      setLoading(false);
+      showAlert(`Your Attendance Session ID is ${attSession.special_id}. Share it with your students.`, 'info', {closable: true});
+      localStorage.setItem('latestSessionObj', JSON.stringify(attSessionObj));
+      navigate("/dashboard/lecturer/timer");  
+     
+    } catch (err) {
+      console.error("Error creating session:", err.response ? err.response.data : err);
+      if(err.response){
+        showAlert(err.response.data.message, 'error');
+        setSuccess(false);
+        setLoading(false);
+      }
+    }
+    setLoading(false);
+    setSuccess(false);
   };
 
   // Page mount animation
@@ -119,6 +115,50 @@ export default function AttendanceSession() {
         initial={{ scale: 0.96, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
       >
+        {/* Loading Spinner Overlay */}
+        <AnimatePresence>
+          {loading && (
+            <motion.div
+              className="absolute inset-0 bg-white/70 flex items-center justify-center z-[9999]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <Spinner />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Success Check Overlay */}
+        <AnimatePresence>
+          {success && (
+            <motion.div
+              className="absolute inset-0 bg-white/80 flex items-center justify-center z-[9998]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300 }}
+                className="bg-green-100 rounded-full p-6"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-12 w-12 text-[#94c04c]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
         <h1 className="text-xl sm:text-2xl font-bold text-center mb-4 sm:mb-6">Create Attendance Session</h1>
 
         <motion.form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" variants={containerVariants}>
@@ -278,3 +318,14 @@ export default function AttendanceSession() {
     </motion.div>
   );
 }
+
+
+const Spinner = () => {
+  return (
+    <motion.div
+      className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-500 rounded-full"
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+    />
+  );
+};

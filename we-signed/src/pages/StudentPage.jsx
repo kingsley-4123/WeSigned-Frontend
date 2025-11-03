@@ -1,26 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaTrash } from "react-icons/fa";
-import { useClearLocationState } from "../utils/ClearLocation.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { putData, getAllData, deleteData } from "../utils/db.js";
-
-// Available gradient classes
-const gradients = [
-  "from-indigo-500 to-sky-400",
-  "from-purple-500 to-pink-400",
-  "from-green-500 to-emerald-400",
-  "from-orange-500 to-yellow-400",
-  "from-rose-500 to-red-400",
-  "from-teal-500 to-cyan-400",
-];
+import {getRandomGradient} from "../utils/randomGradients.js"
 
 export default function StudentPage() {
   const [attendances, setAttendances] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const state = useClearLocationState();
-  const { newAttendance } = state || {};
+  const savedStudentRes = JSON.parse(localStorage.getItem("studentAttendanceObj"));
+  const { title, lecturer, date } = savedStudentRes || {};
 
   // Load attendances from IndexedDB
   useEffect(() => {
@@ -29,24 +19,24 @@ export default function StudentPage() {
 
   // Add a new attendance with random gradient
   useEffect(() => {
-    if (newAttendance) {
-      const randomGradient =
-        gradients[Math.floor(Math.random() * gradients.length)];
+    if (title && lecturer && date) {
+      const randomGradient = getRandomGradient();
 
       const newCard = {
-        title: newAttendance.title,
-        lecturer: newAttendance.lecturer,
-        date: newAttendance.date,
+        title: title,
+        lecturer: lecturer,
+        date: date,
         gradient: randomGradient,
         status: "online"
       };
 
       putData("studentAttendances", newCard).then(() => {
         setAttendances((prev) => [newCard, ...prev]);
+        localStorage.removeItem("studentAttendanceObj");
       });
     }
     // eslint-disable-next-line
-  }, [newAttendance]);
+  }, [title, lecturer, date]);
 
   // Delete card
   const deleteAttendance = async (id) => {
@@ -83,8 +73,7 @@ export default function StudentPage() {
 
             {/* Card */}
             <Link
-              to={`student/attendance/${att.id}`}
-              state={att}
+              to={`/dashboard/student/attendance/${att.id}`}
               className="block"
             >
               {/* Gradient top with title */}

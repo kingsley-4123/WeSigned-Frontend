@@ -25,10 +25,19 @@ service.interceptors.response.use(
         return response;
     },
     (error) => {
-        if (error.response && error.response.status === 401) {
-            // Handle unauthorized access, e.g., redirect
-            localStorage.removeItem('token');
-            window.location.href = '/auth';
+        if (error.response) {
+            const status = error.response.status;
+            const message = error.response.data?.message;
+
+            if(status === 400 && message === 'Invalid token.'){
+                console.warn(message);
+                localStorage.removeItem('token');
+                window.location.href = '/auth';
+            } else if(status === 401){
+                console.warn(message);
+                localStorage.removeItem('token');
+                window.location.href = '/auth';
+            }
         }
         return Promise.reject(error);
     }
@@ -42,7 +51,7 @@ export const signup = (user) => service.post('/signup', { user }, { withCredenti
 
 export const verifySignup = (registrationResponse) => service.post('/signup/webauthn/register/verify', { registrationResponse }, { withCredentials: true });
 
-export const createAttendanceSession = payload => service.post('/attendance-session', { payload}, { withCredentials: true })
+export const createAttendanceSession = (payload) => service.post('/attendance-session', { payload }, { withCredentials: true })
 
 export const getAttendanceSession = specialId => service.get(`/attendance-session/${specialId}`, { withCredentials: true });
 
@@ -56,9 +65,9 @@ export const verIfyOTP = (otp) => service.post('/otp/verify', { otp }, { withCre
 
 export const updatePassword = (email, newPassword) => service.post('/otp/update-password', { email, newPassword }, { withCredentials: true });
 
-export const reRegister = (email) => service.post('/re-register', { email }, { withCredentials: true });
+export const reRegister = (payload) => service.post('/re-register', { ...payload }, { withCredentials: true });
 
-export const attendanceExport = (type, specialId ) => service.get(`/attendance.${type}/${specialId}`, { responseType: "blob" });
+export const attendanceExport = (type, specialId) => service.get(`/attendance.${type}/${specialId}`, { responseType: 'blob' });
 
 export const exportOfflineAttendance = (type, specialId, attendanceName) => service.get(`/attendance.${type}/${specialId}/${attendanceName}`, { responseType: "blob" });
 

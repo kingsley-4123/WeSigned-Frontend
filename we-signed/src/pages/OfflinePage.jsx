@@ -8,7 +8,7 @@ const OfflinePage = () => {
             <h1 className='font-bold text-lg sm:text-xl md:text-2xl'>You are offline</h1>
             <p className='p-2 text-lg sm:text-xl md:text-2xl lg:3xl'>Please check your internet connection and try again.</p>
             <img src='/images/offline.png' alt='Offline image' className='h-40 sm:h-56 object-contain'/>
-            <Link to="/offline-header/component-offline"
+            <Link to="/offline-header/offline-login"
                 className='py-2.5 px-5 m-2 bg-[#007bff] text-[#fff] rounded-lg text-lg sm:text-xl md:text-2xl lg:3xl hover:bg-blue-600'>
                 Continue offline.
             </Link>

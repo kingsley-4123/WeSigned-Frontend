@@ -1,53 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FaTrash } from "react-icons/fa";
-import { useClearLocationState } from "../utils/ClearLocation.jsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { putData, getAllData, deleteData } from "../utils/db.js";
+import {useAlert} from "../components/AlertContext.jsx"
 
-// Available gradient classes
-const gradients = [
-  "from-indigo-500 to-sky-400",
-  "from-purple-500 to-pink-400",
-  "from-green-500 to-emerald-400",
-  "from-orange-500 to-yellow-400",
-  "from-rose-500 to-red-400",
-  "from-teal-500 to-cyan-400",
-];
 
 export default function LecturerPage() {
   const [attendances, setAttendances] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const state = useClearLocationState();
-  const { specialId, attendanceName, lecturer, date } = state || {};
-
+  const { showAlert } = useAlert();
+  
   // Load attendances from IndexedDB
   useEffect(() => {
+    showAlert("Make sure to always download your Attendance records in your prefered format because all record will be deleted after 6 months", "info", { closable: true });
     getAllData("lecturerView").then(setAttendances);
   }, []);
-
-  // Add a new attendance with random gradient
-  useEffect(() => {
-    if (attendanceName) {
-      const randomGradient =
-        gradients[Math.floor(Math.random() * gradients.length)];
-
-      const newCard = {
-        title: attendanceName,
-        lecturer,
-        date,
-        gradient: randomGradient,
-        specialId,
-        status: "online"
-      };
-
-      putData("lecturerView", newCard).then(() => {
-        setAttendances((prev) => [newCard, ...prev]);
-      });
-    }
-    // eslint-disable-next-line
-  }, [attendanceName]);
 
   // Delete card
   const deleteAttendance = async (id) => {
@@ -84,10 +53,10 @@ export default function LecturerPage() {
 
             {/* Card */}
             <Link
-              to={`lecturer`}
-              state={
-                {obj: "lecturerPage", reViewData: {reViewId: att.specialId, reViewName: att.title, reViewStatus: att.status}}
-              }
+              to={`/dashboard/lecturer`}
+              onClick={() => {
+                localStorage.setItem("offlineAttendanceObj", JSON.stringify(att));
+              }}
               className="block"
             >
               {/* Gradient top with title */}

@@ -31,7 +31,7 @@ export default function NotificationPrompt() {
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 w-[95vw] max-w-md bg-white border border-gray-200 shadow-2xl rounded-xl px-4 sm:px-6 py-3 sm:py-4 z-50 flex flex-col items-center animate-slideDown">
       <div className="mb-2 text-indigo-700 font-semibold text-center text-sm sm:text-base">
-        Enable notifications to get important updates, like when your attendance or session is synced!
+        Enable notifications to get important updates, like when your attendance or session is synced!, or when your re-registered account is been activated!.
       </div>
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-2 w-full justify-center">
         <button

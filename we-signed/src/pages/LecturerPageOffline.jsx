@@ -1,20 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { QRCodeSVG } from 'qrcode.react';
-import { putData, saveSession, getDataById } from "../utils/db.js";
+import { putData, saveSession, getAllData } from "../utils/db.js";
 import { nanoid } from "nanoid";
 import getDurationInMs from "../utils/timeUtils.js";
 import FlippingNumber from "../components/FlippingNumber";
 import { decryptText } from "../utils/cryptoUtils.js";
 import { motion } from "framer-motion";
+import { useAlert } from "../components/AlertContext.jsx";
+import { getRandomGradient } from "../utils/randomGradients.js";
 
- const gradients = [
-  "from-indigo-500 to-sky-400",
-  "from-purple-500 to-pink-400",
-  "from-green-500 to-emerald-400",
-  "from-orange-500 to-yellow-400",
-  "from-rose-500 to-red-400",
-  "from-teal-500 to-cyan-400",
-];
 
 export default function Lecturer() {
   const [attendanceName, setAttendanceName] = useState("");
@@ -25,14 +19,23 @@ export default function Lecturer() {
   const [countdown, setCountdown] = useState(null);
   const timerRef = useRef();
 
+  const savedUserEmail = JSON.parse(localStorage.getItem('offlineUserEmail'));
+  const email = savedUserEmail || '';
+
+  const {showAlert} = useAlert();
+
   async function startSession() {
     if (!attendanceName || !duration || !unit) {
       return alert("Enter attendance name, duration, and unit");
     }
 
-    const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
-    const data = await getDataById('user', 1);
-    const { userId, surname, middlename, firstname } = data.user;
+    const randomGradient = getRandomGradient();
+    const users = await getAllData('user');
+    const user = users.find(u => u.email === email);
+    if (!user) {
+      return showAlert("User not found. Please login again.", "warning");
+    }
+    const { userId, surname, middlename, firstname } = user;
     const name = `${surname} ${middlename ? middlename + ' ' : ''}${firstname}`;
     console.log("encrypted lecturer ID:", userId);
 

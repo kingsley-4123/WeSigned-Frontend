@@ -18,9 +18,9 @@ export default function SubProgress() {
             try {
                 const response = await getSubTimestamp();
                 if (response.data) {
-                    const { expiration, start, message } = response.data;
-                    // if (message) showAlert(message, "success");
+                    const { expiration, start, message } = response.data
                     const total = expiration - start;
+                    console.log("START", start, "EXPIRATION", expiration);
                     setStartDate(start);
                     setTotal(total);
                 } else {
@@ -30,8 +30,8 @@ export default function SubProgress() {
             } catch (err) {
                 setStartDate(0);
                 setTotal(0);
-                // showAlert("Error getting subscription timestamps", "error");
-                // console.error("Error getting subscription timestamps", err);
+                if(err.response) showAlert(err.response.data.message, "warning");
+                console.error(err.response ? err.response.data : err);
             }
         }
         getTimestamps();

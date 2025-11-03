@@ -1,6 +1,6 @@
 import React, { useState, useRef} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { putData, getAllData, deleteData } from '../utils/db.js';
+import { putData, getAllData, deleteData, isStoreEmpty } from '../utils/db.js';
 import { signup, login, sendOTP, verIfyOTP, updatePassword} from '../utils/service.js';
 import { useNavigate } from 'react-router-dom';
 import { encryptText, decryptText } from '../utils/cryptoUtils.js';
@@ -45,6 +45,7 @@ function AuthForm() {
     if (!isLogin) {
       try {
         const { firstname, middlename, surname, email, password, school } = form;
+        console.log("Form Data:", form);
         if (!firstname || !middlename || !surname || !email || !password) {
           setError('All fields are required');
           setLoading(false);
@@ -56,10 +57,16 @@ function AuthForm() {
           return;
         }
 
+        const isEmpty = await isStoreEmpty('user');
+        if (!isEmpty) {
+          showAlert('An account already exists on this device. Please login instead.', 'error');
+          setLoading(false);
+          return;
+        }
         const payload = { firstname, middlename, surname, email, password, school };
         const signupRes = await signup(payload);
 
-        if(signupRes.data.ok){
+        if (signupRes.data.ok) {
           const userId = signupRes.data.userID;
           const token = signupRes.data.token;
           const encryptedUserId = await encryptText(userId); 
@@ -74,7 +81,6 @@ function AuthForm() {
           setSuccess(true);
           showAlert('Registration successful!', 'success');
           setTimeout(() => navigate('/dashboard'), 1500);
-
         } else {
           localStorage.removeItem('token');
           setError('Registration failed!');
@@ -101,20 +107,32 @@ function AuthForm() {
           const userId = loginRes.data.userId;
           const userData = loginRes.data.user;
           const token = loginRes.data.token;
-          const existingUsers = await getAllData('user');
-          const existingUser = existingUsers.find((u) => u.email === email);
-          const decryptedId = await decryptText(existingUser.userId); // The error
+          const isEmpty = await isStoreEmpty('user');
           
-          if (!existingUser && userData) {
+          if (isEmpty && userData) {
             const encryptedText = await encryptText(userId);
-            await putData('user', { ...userData, userId: encryptedText });
+            const encryptedPassword = await encryptText(password);
+            await putData('user', { ...userData, userId: encryptedText, password: encryptedPassword });
             localStorage.setItem('token', token);
             setSuccess(true);
             setTimeout(() => navigate('/dashboard'), 1500);
-          } else if (decryptedId !== userId) {
-            showAlert("This is not the registered device.", 'error');
-            setLoading(false);
-            return;
+          } else if (!isEmpty) {
+            const existingUsers = await getAllData('user');
+            const existingUser = existingUsers.find((u) => u.email === email);
+            if (!existingUser) {
+              showAlert("This is not the registered device.", "warning");
+              setLoading(false);
+              return;
+            }
+            const decryptedId = await decryptText(existingUser.userId);
+            if (decryptedId !== userId) {
+              showAlert("This is not the registered device.", 'warning');
+              setLoading(false);
+              return;
+            }
+            localStorage.setItem('token', token);
+            setSuccess(true);
+            setTimeout(() => navigate('/dashboard'), 1500);
           } else {
             localStorage.setItem('token', token);
             setSuccess(true);
@@ -123,11 +141,14 @@ function AuthForm() {
           
         } else {
           showAlert(loginRes.data.message, 'error');
+          setLoading(false);
         }
       } catch (err) {
         console.error('LOGIN_ERROR', err.response ? err.response.data : err);
         if (err.response) {
           showAlert(err.response.data.message, 'warning');
+          setLoading(false);
+          setForm((prev) => ({ ...prev, password: '', email: '' }));
           return;
         }
       }
@@ -199,10 +220,12 @@ function AuthForm() {
         setShowNewPasswordInput(true);
       } else {
         showAlert(res.data.message, 'error');
+        setLoading(false);
       }
     } catch (err) {
       if (err.response) {
-        showAlert(err.response.data.message, 'error'); 
+        showAlert(err.response.data.message, 'error');
+        setLoading(false); 
       }
     }
     setLoading(false);
@@ -231,10 +254,14 @@ function AuthForm() {
         showAlert(res.data.message, 'success');
       } else {
         showAlert(res.data.message, 'error');
+        setLoading(false);
+        return;
       }
     } catch (err) {
       if (err.response) {
         showAlert(err.response.data.message, 'error');
+        setLoading(falsr);
+        return;
       }
     }
     setShowNewPasswordInput(false);
@@ -262,7 +289,7 @@ function AuthForm() {
         <AnimatePresence>
           {loading && (
             <motion.div
-              className="absolute inset-0 bg-white/70 flex items-center justify-center"
+              className="absolute inset-0 bg-white/70 flex items-center justify-center z-[9999]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -276,7 +303,7 @@ function AuthForm() {
         <AnimatePresence>
           {success && (
             <motion.div
-              className="absolute inset-0 bg-white/80 flex items-center justify-center"
+              className="absolute inset-0 bg-white/80 flex items-center justify-center z-[9998]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -344,9 +371,9 @@ function AuthForm() {
         >
           {!isLogin && (
             <>
-              {['Firstname:', 'Middlename:', 'Surname:'].map((field) => (
+              {['firstname', 'middlename', 'surname'].map((field) => (
                 <div key={field}>
-                  <label className="block text-sm font-medium text-indigo-700 mb-1">
+                  <label className="block text-md font-medium text-indigo-700 mb-1">
                     {field.charAt(0).toUpperCase() + field.slice(1)}
                   </label>
                   <input
@@ -362,7 +389,7 @@ function AuthForm() {
             </>
           )}
           <div>
-            <label className="block text-sm font-medium text-indigo-700 mb-1">Email:</label>
+            <label className="block text-md font-medium text-indigo-700 mb-1">Email</label>
             <input
               type="email"
               name="email"
@@ -375,7 +402,7 @@ function AuthForm() {
           </div>
           {isLogin && (
             <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Password</label>
+              <label className="block text-md font-medium text-indigo-700 mb-1">Password</label>
               <PasswordInput
                 name="password"
                 placeholder='Password'
@@ -387,7 +414,7 @@ function AuthForm() {
           )}
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">School: <span className='text-gray-400'> (optional) </span></label>
+              <label className="block text-md font-medium text-indigo-700 mb-1">School <span className='text-gray-400'> (optional) </span></label>
               <input
                 type="text"
                 name='school'
@@ -400,7 +427,7 @@ function AuthForm() {
           )}
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Password:</label>
+              <label className="block text-md font-medium text-indigo-700 mb-1">Password</label>
               <PasswordInput
                 name="password"
                 placeholder='Password'
@@ -412,7 +439,7 @@ function AuthForm() {
           )}
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-indigo-700 mb-1">Confirm Password:</label>
+              <label className="block text-md font-medium text-indigo-700 mb-1">Confirm Password</label>
               <input
                 type="password"
                 className="w-full px-3 sm:px-4 py-2 rounded-lg border border-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-indigo-50 text-indigo-900 text-base sm:text-lg"
@@ -423,14 +450,14 @@ function AuthForm() {
               />
             </div>
           )}
-          <motion.button
+          <button
             type="submit"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-400 text-white font-semibold text-base sm:text-lg shadow-md hover:from-indigo-600 hover:to-sky-500 transition-all hover:cursor-pointer"
+            onClick={handleSubmit}
+            disabled={loading}
+            className="hover:scale-105 active:scale-95 w-full py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-sky-400 text-white font-semibold text-base sm:text-lg shadow-md hover:from-indigo-600 hover:to-sky-500 transition-all hover:cursor-pointer"
           >
             {isLogin ? 'Login' : 'Sign Up'}
-          </motion.button>
+          </button>
         </motion.form>
 
         {/* Switch Auth Mode */}
@@ -515,7 +542,7 @@ function AuthForm() {
                     <span className='text-sm text-indigo-500'>{!showOtpInput ? " Enter your Email to proceed." : ""}</span>
                   </p>
                   <div className='mb-4 text-left'> 
-                    <label className="block text-sm font-medium text-indigo-700 mb-1">Email:</label>
+                    <label className="block text-md font-medium text-indigo-700 mb-1">Email</label>
                     <input
                       type="email"
                       name="email"
@@ -551,6 +578,7 @@ function AuthForm() {
               {!showNewPasswordInput && (
                 <button
                   onClick={!showOtpInput ? handleSendOtp : handleVerifyOtp}
+                  disabled={loading}
                   className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all mt-2 font-semibold text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer text-base sm:text-lg"
                 >
                   { showOtpInput ? "verify code" : "verify email"}
@@ -560,7 +588,7 @@ function AuthForm() {
               {showNewPasswordInput && (
                 <>
                   <div className='mb-4 text-left'>
-                    <label className="block text-sm font-medium text-indigo-700 mb-1">New Password:</label>
+                    <label className="block text-md font-medium text-indigo-700 mb-1">New Password</label>
                     <PasswordInput
                       name="newPassword"
                       placeholder='Password'
@@ -570,7 +598,7 @@ function AuthForm() {
                     />
                   </div>
                   <div className="mb-4 text-left">
-                    <label className="block text-sm font-medium text-indigo-700 mb-1">Confirm New Password:</label>
+                    <label className="block text-md font-medium text-indigo-700 mb-1">Confirm New Password</label>
                     <input
                       type="password"
                       name="confirmNewPassword"
@@ -586,6 +614,7 @@ function AuthForm() {
               {showNewPasswordInput && (
                 <button
                   onClick={handleUpdatePassword}
+                  disabled={loading}
                   className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all mt-2 text-white px-4 py-2 rounded-lg w-full hover:cursor-pointer text-base sm:text-lg"
                 >
                   Update Password

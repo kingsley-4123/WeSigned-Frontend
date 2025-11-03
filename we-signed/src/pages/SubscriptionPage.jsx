@@ -2,6 +2,7 @@ import { useState } from "react";
 import { initiatePayment } from "../utils/service.js";
 import { useNavigate } from "react-router-dom";
 import { useAlert } from "../components/AlertContext.jsx";
+import { motion, AnimatePresence } from "framer-motion";
 
 const plans = [
   { label: "2 Weeks", value: "2w", price: 500, description: "2 weeks subscription" },
@@ -12,6 +13,7 @@ const plans = [
 
 export default function SubscriptionPage() {
   const [selectedPlan, setSelectedPlan] = useState(plans[0]);
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     amount: plans[0].price,
     currency: "NGN",
@@ -35,27 +37,36 @@ export default function SubscriptionPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: handle payment logic here
-    try { 
+    setLoading(true);
+    try {
       const response = await initiatePayment(form);
       if (response.data) {
-        showAlert(response.data.message || "Redirecting to payment...", 'success'); 
-        navigate(response.data.checkoutUrl);
+        showAlert(response.data.message || "Redirecting to payment...", "success");
+        const paymentUrl = response.data.checkoutUrl;
+        window.location.href = paymentUrl;
       } else {
-        showAlert(response.data.message || response.data.error, 'error');
+        showAlert(response.data.message || response.data.error, "error");
+        setLoading(false);
       }
     } catch (err) {
       console.error("Subscription initiate payment error", err);
-      showAlert(err.response?.data?.message || "Subscription failed. Please try again.", 'error');
+      showAlert(err.response?.data?.message || "Subscription failed. Please try again.", "error");
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-sky-100 to-indigo-200 flex flex-col items-center py-8 px-2">
+    <div className="relative min-h-screen bg-gradient-to-br from-indigo-50 via-sky-100 to-indigo-200 flex flex-col items-center py-8 px-2">
+      {/* Loading Overlay */}
+      <AnimatePresence>
+        {loading && <SpinnerOverlay />}
+      </AnimatePresence>
+
       <div className="w-full max-w-2xl bg-white/90 rounded-2xl shadow-2xl p-6 sm:p-10 flex flex-col items-center">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 mb-6 text-center">
           Choose Your Subscription Plan
         </h1>
+
         {/* Plans */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-8">
           {plans.map((plan) => (
@@ -64,17 +75,22 @@ export default function SubscriptionPage() {
               type="button"
               onClick={() => handlePlanSelect(plan)}
               className={`rounded-xl border-2 p-5 flex flex-col items-center shadow transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400
-                ${selectedPlan.value === plan.value
-                  ? "border-[#94c04c] bg-gradient-to-br from-blue-100 to-green-50 scale-105"
-                  : "border-blue-200 bg-white hover:scale-105"}
+                ${
+                  selectedPlan.value === plan.value
+                    ? "border-[#94c04c] bg-gradient-to-br from-blue-100 to-green-50 scale-105"
+                    : "border-blue-200 bg-white hover:scale-105"
+                }
               `}
             >
               <span className="text-lg font-bold text-blue-700 mb-1">{plan.label}</span>
-              <span className="text-2xl font-extrabold text-[#94c04c] mb-1">₦{plan.price.toLocaleString()}</span>
+              <span className="text-2xl font-extrabold text-[#94c04c] mb-1">
+                ₦{plan.price.toLocaleString()}
+              </span>
               <span className="text-sm text-gray-600">{plan.description}</span>
             </button>
           ))}
         </div>
+
         {/* Subscription Form */}
         <form className="w-full max-w-md space-y-4" onSubmit={handleSubmit}>
           <div>
@@ -88,6 +104,7 @@ export default function SubscriptionPage() {
               readOnly
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-blue-700 mb-1">Currency</label>
             <select
@@ -100,6 +117,7 @@ export default function SubscriptionPage() {
               <option value="USD">USD ($)</option>
             </select>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-blue-700 mb-1">Customer Email</label>
             <input
@@ -111,6 +129,7 @@ export default function SubscriptionPage() {
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-blue-700 mb-1">Customer Name</label>
             <input
@@ -122,6 +141,7 @@ export default function SubscriptionPage() {
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-blue-700 mb-1">Customer Phone</label>
             <input
@@ -133,6 +153,7 @@ export default function SubscriptionPage() {
               required
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-blue-700 mb-1">Description</label>
             <input
@@ -144,14 +165,42 @@ export default function SubscriptionPage() {
               readOnly
             />
           </div>
+
           <button
             type="submit"
+            disabled={loading}
             className="w-full py-3 rounded-lg bg-gradient-to-r from-[#273c72] to-[#94c04c] text-white font-semibold text-lg shadow-md hover:from-[#23376b] hover:to-[#669b11] hover:scale-105 transition-all hover:cursor-pointer mt-2"
           >
-            Subscribe Now
+            {!loading ? "Subscribe Now" : "Processing..."}
           </button>
         </form>
       </div>
     </div>
   );
 }
+
+/* Spinner Component */
+const Spinner = () => {
+  return (
+    <motion.div
+      className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-500 rounded-full"
+      animate={{ rotate: 360 }}
+      transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+    />
+  );
+};
+
+/* Spinner Overlay */
+const SpinnerOverlay = () => {
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <Spinner />
+      <p className="text-white mt-4 text-lg font-medium">Processing payment...</p>
+    </motion.div>
+  );
+};

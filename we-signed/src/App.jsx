@@ -26,9 +26,11 @@ import OfflinePage from "./pages/OfflinePage";
 import NotificationPrompt from './components/NotificationPrompt';
 import ExcelComparePage from './pages/ExcelComparePage';
 import OfflineHeader from "./pages/OfflineHeader";
+import OfflineLoginPage from "./pages/OfflineLogin.jsx";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import Reregistration from "./pages/Reregistration";
 import { AlertProvider } from "./components/AlertContext";
+import { handlePendingUser } from "./utils/db.js";
 
 // Wrap the entire app in AlertProvider to provide alert context
 
@@ -36,6 +38,14 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isIncognito, setIsIncognito] = useState(false);
+
+  useEffect(()=>{
+    handlePendingUser();
+
+    const interval = setInterval(handlePendingUser, 10*60*1000); // every 10 minutes
+
+    return () => clearInterval(interval);
+  }, [])
 
   useEffect(() => {
     // Simulate loading for 3s
@@ -94,7 +104,7 @@ export default function App() {
             <Route path="/" element={<WelcomePage />} />
             <Route path="/auth" element={<AuthForm />} />
             <Route path="reregistration" element={<Reregistration />} />
-            <Route path="/success" element={<SuccessPage />} />
+            <Route path="/success-page" element={<SuccessPage />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
               <Route path="lecturer/attendance-session" element={<AttendanceSession />} />  
               <Route path="student/attendance/:id" element={<AttendanceDetail />} />
@@ -119,6 +129,7 @@ export default function App() {
               <Route path="lecturer-offline" element={<LecturerPageOffline />} />
               <Route path="student-offline" element={<StudentPageOffline />} />
               <Route path="component-offline" element={<ComponentOffline />} />
+              <Route path="offline-login" element={<OfflineLoginPage />} />
               <Route path="*" element={<NotFound />} />
             </Route>
 

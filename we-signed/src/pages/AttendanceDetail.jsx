@@ -1,7 +1,8 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { getDataById } from "../utils/db.js";
+import { getDataById, getAllData } from "../utils/db.js";
 
 
 export default function AttendanceDetail() {
@@ -13,8 +14,11 @@ export default function AttendanceDetail() {
   useEffect(() => {
     async function fetchAttendance() {
       try {
-        const data = await getDataById("studentAttendances", id);
-        setAttendance(data);
+        const data = await getAllData("studentAttendances");
+        const objId = Number(id);
+        const specData = data.find((u) => u.id === objId);
+        console.log('ATTENDANCE DETAIL', specData, 'ID', id);
+        setAttendance(specData);
         setLoading(false);
       } catch (err) {
         console.error("error in attendance details:", err);
@@ -55,7 +59,7 @@ export default function AttendanceDetail() {
         {/* Back Button in top-left */}
         <button
           onClick={() => navigate(-1)}
-          className="absolute top-3 left-3 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white"
+          className="absolute top-3 left-3 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white cursor-pointer"
         >
           <ArrowLeft size={20} />
         </button>
@@ -77,8 +81,7 @@ export default function AttendanceDetail() {
         </div>
 
         <p className="text-gray-600">
-          This attendance was successfully signed and stored on your device.
-          You can access it offline anytime.
+          Thanks for using <span className='text-[#273c72] font-bold'> We</span><span className="text-[#94c04c] font-bold">Signed.</span> reach out to us if you have ay complaint or some updates to be done.
         </p>
       </div>
     </motion.div>

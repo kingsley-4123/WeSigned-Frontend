@@ -1,89 +1,149 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { getAttendances } from "../utils/service.js";
-import { useClearLocationState } from "../utils/ClearLocation.jsx";
 import { useAlert } from "../components/AlertContext.jsx";
 
 export default function TimerPage() {
-  const state = useClearLocationState();
-  const { attSession, lecturer, date } = state || {};
-  const { lecturer_id, special_id, duration, attendance_name } = attSession || {
-    lecturer_id: null,
-    special_id: null,
-    duration: 0
-  };
+  const savedSessionData = JSON.parse(localStorage.getItem("latestSessionObj"));
+  console.log("Saved session data from localStorage:", savedSessionData);
 
-   if (!lecturer_id || !special_id) {
+  const { attSession, lecturer, date } = savedSessionData || {};
+  const {
+    special_id,
+    duration = 0,
+    duration_unit = "seconds",
+    attendance_name,
+    createdAt,
+  } = attSession || {};
+
+  console.log("SESSION_SPECIALID:", special_id, "SESSION_LECTURER:", lecturer);
+
+  if (!special_id) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <p className="text-red-500 text-lg">No active attendance session found.</p>
+        <p className="text-red-500 text-lg">
+          No active attendance session found.
+        </p>
       </div>
     );
   }
 
-  const [timeLeft, setTimeLeft] = useState(duration);
-  const [isFinished, setIsFinished] = useState(false);
+  // 🔹 Convert duration into seconds based on unit
+  const durationInSeconds = useMemo(() => {
+    switch (duration_unit) {
+      case "minutes":
+        return duration * 60;
+      case "hours":
+        return duration * 3600;
+      default:
+        return duration;
+    }
+  }, [duration, duration_unit]);
+
+  // 🔹 Calculate elapsed time since session started
+  const elapsedTimeInSeconds = Math.floor((Date.now() - createdAt) / 1000);
+  const initialTimeLeft = Math.max(durationInSeconds - elapsedTimeInSeconds, 0);
+
+  const [timeLeft, setTimeLeft] = useState(initialTimeLeft);
+  const [isFinished, setIsFinished] = useState(initialTimeLeft <= 0);
   const navigate = useNavigate();
   const { showAlert } = useAlert();
 
-  // Countdown logic
+  // 🔹 Countdown logic (stable, even on refresh)
   useEffect(() => {
     if (timeLeft <= 0) {
       setIsFinished(true);
       return;
     }
+
     const interval = setInterval(() => {
-      setTimeLeft((t) => t - 1);
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          clearInterval(interval);
+          setIsFinished(true);
+          return 0;
+        }
+        return t - 1;
+      });
     }, 1000);
+
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  // Get percentage left
-  const percentage = (timeLeft / duration) * 100;
+  // 🔹 Percentage left (for circle progress)
+  const percentage = (timeLeft / durationInSeconds) * 100;
 
-  // Circle color based on time
-  let color = "text-green-500 border-green-500";
-  if (percentage <= 60 && percentage > 30) {
-    color = "text-orange-500 border-orange-500";
-  } else if (percentage <= 30) {
-    color = "text-red-500 border-red-500";
-  }
+  // 🔹 Circle color based on time remaining
+  const color =
+    percentage <= 30
+      ? "text-red-500 border-red-500"
+      : percentage <= 60
+      ? "text-orange-500 border-orange-500"
+      : "text-green-500 border-green-500";
 
-  // Navigate to table
+  // 🔹 Format time (HH:MM:SS)
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if (hrs > 0) return `${hrs}h ${mins}m ${secs}s`;
+    if (mins > 0) return `${mins}m ${secs}s`;
+    return `${secs}s`;
+  };
+
+  // 🔹 Fetch attendance after timer ends
   const handleGetAttendance = async () => {
     try {
       const res = await getAttendances(special_id);
-      if (!res.data.attendanceList) {
-        showAlert("No attendance records found.", 'error');
+      console.log("GET ATTENDANCE RES", res.data);
+
+      if (!res.data) {
+        showAlert(res.data?.message || "No attendance data found.", "error");
         return;
       }
-      console.log("Fetched attendances:", res.data);
-      navigate("/lecturer", {
-        state: {
-          obj: "lecturerTimer",
-          timerData: {
-            attendance: res.data.attendanceList,
-            special_id,
-            attendance_name,
-            lecturer,
-            date
-          }
-        }
-      });
-    } catch (err) {
-      console.error("Error fetching attendances:", err.response ? err.response.data : err);
-      showAlert("Failed to fetch attendance records.", 'error');
-    }
 
-    
+      const timerData = {
+        attendance: res.data.attendanceList,
+        special_id,
+        attendance_name,
+        lecturer,
+        date,
+      };
+
+      localStorage.setItem("latestAttendanceObj", JSON.stringify(timerData));
+      localStorage.removeItem("latestSessionObj");
+      navigate("/dashboard/lecturer");
+    } catch (err) {
+      console.error(err.response ? err.response.data : err);
+      if (err.response) {
+        showAlert(
+          err.response.data.message || "Couldn't get the attendance.",
+          "error"
+        );
+      }
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 gap-8 p-6 text-center">
+      {/* Session Info */}
+      <div className="text-center">
+        <h2 className="text-xl font-semibold text-gray-700">
+          Attendance: <span className="text-blue-600">{attendance_name}</span>
+        </h2>
+        <p className="text-gray-500 font-semibold mt-1">
+          Session ID:{" "}
+          <span className="font-medium text-lg tracking-[0.06em] text-[#94c04c] ml-3">
+            {special_id}
+          </span>
+        </p>
+      </div>
 
+      {/* Timer Circle */}
       <motion.div
-        className={`relative flex items-center justify-center rounded-full border-[12px] ${color}`}
+        className={`relative flex items-center justify-center rounded-full border-[12px] ${color} shadow-lg`}
         style={{
           width: "250px",
           height: "250px",
@@ -92,18 +152,22 @@ export default function TimerPage() {
         animate={{ scale: [1, 1.05, 1] }}
         transition={{ repeat: Infinity, duration: 1.5 }}
       >
-        {/* Time Text */}
-        <span className="text-4xl font-bold z-10">{timeLeft}s</span>
+        <div className="flex flex-col items-center z-10">
+          <span className="text-4xl font-bold text-gray-800">
+            {formatTime(timeLeft)}
+          </span>
+          <span className="text-sm text-gray-500 mt-1">Time Remaining</span>
+        </div>
       </motion.div>
-      
-      <div className="text-2xl font-bold ">{special_id}</div>
 
+      {/* Get Attendance Button */}
       {isFinished && (
         <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          whileHover={{ scale: 1.05 }}
           onClick={handleGetAttendance}
-          className="absolute bottom-12 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow hover:bg-blue-700"
+          className="mt-6 px-6 py-3 bg-gradient-to-r from-indigo-500 to-sky-300 text-white font-medium rounded-lg shadow hover:from-indigo-600 hover:to-sky-400 cursor-pointer transition"
         >
           Get Attendance
         </motion.button>
