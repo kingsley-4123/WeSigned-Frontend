@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { getAllData } from "../utils/db";
 import { useAlert } from "../components/AlertContext";
 import { useNavigate } from "react-router-dom"; 
 import { decryptText } from "../utils/cryptoUtils";
+import PasswordInput from "../components/PasswordComponent";
 
 export default function OfflineLoginPage() {
     const [error, setError] = useState('');
@@ -46,7 +48,7 @@ export default function OfflineLoginPage() {
         }
         setSuccess(true);
         setError('');
-        localStorage.setItem('offlineUserEmail', email);
+        localStorage.setItem('offlineUserEmail', JSON.stringify(email));
         setTimeout(() => {
             navigate('/offline-header/component-offline');
         }, 1000);
@@ -70,7 +72,7 @@ export default function OfflineLoginPage() {
                 <AnimatePresence>
                   {loading && (
                     <motion.div
-                      className="absolute inset-0 bg-white/70 flex items-center justify-center"
+                      className="absolute inset-0 bg-white/70 flex items-center justify-center z-[9999]"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -84,7 +86,7 @@ export default function OfflineLoginPage() {
                 <AnimatePresence>
                   {success && (
                     <motion.div
-                      className="absolute inset-0 bg-white/80 flex items-center justify-center"
+                      className="absolute inset-0 bg-white/80 flex items-center justify-center z-[9998]"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -167,7 +169,7 @@ export default function OfflineLoginPage() {
                         <PasswordInput
                             name="password"
                             placeholder='Password'
-                            value={assword}
+                            value={password}
                             onChange={e => setPassword(e.target.value)}
                             autoComplete="new-password"
                         />

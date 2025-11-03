@@ -45,12 +45,13 @@ export default function Lecturer() {
 
     const now = Date.now();
     const durationMs = getDurationInMs(Number(duration), unit);
+    const decryptedId = await decryptText(userId);
     const session = {
       id, // this is the specialID students will type in
       attendanceName: `attendanceName ${now}`,
       duration: Number(duration),
       unit,
-      lecturerId: decryptText(userId),
+      lecturerId: decryptedId,
       createdAt: now,
       expiresAt: now + durationMs,
       synced: false
@@ -93,11 +94,12 @@ export default function Lecturer() {
     return () => clearInterval(timerRef.current);
   }, [expiresAt]);
 
-  // Format time mm:ss
+  // Format time hh:mm:ss
   function formatTime(secs) {
-    const m = Math.floor(secs / 60);
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
     const s = secs % 60;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
   return (
@@ -185,9 +187,14 @@ export default function Lecturer() {
                 <div className="flex gap-1 justify-center">
                   {formatTime(countdown || 0).split("").map((digit, idx) =>
                     digit === ":" ? (
-                      <span key={idx} className="text-3xl font-bold text-gray-500 px-1">:</span>
+                      <span key={idx} className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-500 px-1">:</span>
                     ) : (
-                      <FlippingNumber key={idx} number={digit} />
+                      <div
+                        key={idx}
+                        className="w-7 sm:w-10 md:w-12 flex justify-center"
+                      >
+                        <FlippingNumber number={digit} />
+                      </div>
                     )
                   )}
                 </div>

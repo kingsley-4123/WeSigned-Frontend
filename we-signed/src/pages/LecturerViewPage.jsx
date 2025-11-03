@@ -131,7 +131,7 @@ export default function AttendanceTablePage() {
       }
 
       if (blobData) {
-        showAlert("Be patient your download will start shortly.", "info", { closable: true });
+        showAlert("Be patient your download will start shortly.", "info", { duration: 4000 });
         const url = window.URL.createObjectURL(blobData);
         const link = document.createElement("a");
         link.href = url;
@@ -156,7 +156,7 @@ export default function AttendanceTablePage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-gray-100 px-3 sm:px-6 py-4 flex flex-col">
+    <div className="min-h-screen bg-gray-100 mx-[-15px] sm:px-6 py-4 flex flex-col">
       {/* Header Section */}
       <div className="relative flex flex-col items-center mb-6">
         {/* Go Back Button */}
@@ -167,19 +167,21 @@ export default function AttendanceTablePage() {
             navigate(-1);
           }}
           whileTap={{ scale: 0.95 }}
-          className="absolute left-0 top-0 flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-full shadow hover:bg-gray-50 transition cursor-pointer"
+          className="absolute top-0 left-0 items-center gap-2 text-xs sm:text-sm font-medium text-gray-700 bg-white px-3 py-2 rounded-full shadow hover:bg-gray-200 transition cursor-pointer"
         >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Go Back</span>
+          <ArrowLeft size={20} />
         </motion.button>
 
         {/* Header Title */}
-        <h1 className="text-lg sm:text-2xl font-bold text-gray-800 text-center">
-          Attendance Records
-        </h1>
+        <div className="h-20 flex justify-center items-center">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-800 text-center">
+            Attendance Records
+          </h1>
+        </div>
+        
 
         {/* Download Buttons */}
-        <div className="absolute right-0 top-0 flex gap-2">
+        <div className="flex gap-2">
           <button
             onClick={() => handleDownload("xlsx")}
             disabled={loadingFile === "xlsx"}
@@ -227,7 +229,7 @@ export default function AttendanceTablePage() {
             ></motion.div>
           </div>
         ) : dataToRender.length > 0 ? (
-          <table className="min-w-[420px] w-full text-left border-collapse text-xs sm:text-sm">
+          <table className="min-w-[360px] w-full text-left border-collapse text-xs sm:text-sm">
             <thead className="bg-gray-200 text-gray-700 sticky top-0">
               <tr>
                 <th className="px-2 sm:px-4 py-2">#</th>
@@ -249,7 +251,7 @@ export default function AttendanceTablePage() {
                   <td className="px-2 sm:px-4 py-2 truncate">{s.full_name}</td>
                   <td className="px-2 sm:px-4 py-2">{s.matric_no}</td>
                   <td className="px-2 sm:px-4 py-2 whitespace-nowrap">
-                    {new Date(s.signedAt).toLocaleString()}
+                    {new Date(s.signedAt).toDateString()}
                   </td>
                 </motion.tr>
               ))}

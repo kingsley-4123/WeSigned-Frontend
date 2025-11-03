@@ -39,7 +39,7 @@ export default function OfflineHeader() {
         <div className="flex items-center gap-2">
           <label htmlFor="profile-upload" className="cursor-pointer group relative">
             <img
-              src={profileImg || "https://i.pravatar.cc/40"}
+              src={profileImg}
               alt="Profile"
               className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-gray-300 object-cover group-hover:opacity-80 transition"
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
