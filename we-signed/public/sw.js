@@ -58,7 +58,7 @@ self.addEventListener('sync', (event) => {
 
 async function getAllPending() {
   return new Promise((resolve, reject) => {
-    const open = indexedDB.open('WeSignedDB', 2);
+    const open = indexedDB.open('WeSignedDB', 3);
     open.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains('pending')) {
@@ -79,7 +79,7 @@ async function getAllPending() {
 
 async function getAllSessions() {
   return new Promise((resolve, reject) => {
-    const open = indexedDB.open('WeSignedDB', 2); 
+    const open = indexedDB.open('WeSignedDB', 3); 
     open.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains('sessions')) {
@@ -100,7 +100,7 @@ async function getAllSessions() {
 
 async function clearSessions() {
   return new Promise((resolve, reject) => {
-    const open = indexedDB.open('WeSignedDB', 2);
+    const open = indexedDB.open('WeSignedDB', 3);
     open.onsuccess = () => {
       const db = open.result;
       const tx = db.transaction('sessions', 'readwrite');
@@ -114,7 +114,7 @@ async function clearSessions() {
 
 async function clearPending() {
   return new Promise((resolve, reject) => {
-    const open = indexedDB.open('WeSignedDB', 2);
+    const open = indexedDB.open('WeSignedDB', 3);
     open.onsuccess = () => {
       const db = open.result;
       const tx = db.transaction('pending', 'readwrite');
@@ -128,7 +128,7 @@ async function clearPending() {
 
 async function clearSignIns() {
   return new Promise((resolve, reject) => {
-    const open = indexedDB.open('WeSignedDB', 2);
+    const open = indexedDB.open('WeSignedDB', 3);
     open.onsuccess = () => {
       const db = open.result;
       const tx = db.transaction('signins', 'readwrite');
