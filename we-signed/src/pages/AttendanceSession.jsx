@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createAttendanceSession } from "../utils/service.js";
 import getCurrentLocation from "../utils/location.js";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FaClock, FaRulerCombined, FaCheck } from "react-icons/fa";
 import { useAlert } from "../components/AlertContext.jsx";

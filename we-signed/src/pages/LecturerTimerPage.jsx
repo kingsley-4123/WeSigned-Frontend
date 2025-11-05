@@ -100,7 +100,7 @@ export default function TimerPage() {
       console.log("GET ATTENDANCE RES", res.data);
 
       if (!res.data) {
-        showAlert(res.data?.message || "No attendance data found.", "error");
+        showAlert("No attendance data found.", "error");
         return;
       }
 
@@ -112,16 +112,16 @@ export default function TimerPage() {
         date,
       };
 
-      localStorage.setItem("latestAttendanceObj", JSON.stringify(timerData));
       localStorage.removeItem("latestSessionObj");
+      const storedData = JSON.parse(localStorage.getItem("latestAttendanceObj"));
+      if (storedData) localStorage.removeItem("latestAttendanceObj");
+      localStorage.setItem("latestAttendanceObj", JSON.stringify(timerData));
       navigate("/dashboard/lecturer");
     } catch (err) {
       console.error(err.response ? err.response.data : err);
       if (err.response) {
-        showAlert(
-          err.response.data.message || "Couldn't get the attendance.",
-          "error"
-        );
+        showAlert(err.response.data.message, "error");
+        return;
       }
     }
   };
