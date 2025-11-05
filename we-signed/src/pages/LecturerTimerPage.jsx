@@ -42,7 +42,12 @@ export default function TimerPage() {
   }, [duration, duration_unit]);
 
   // 🔹 Calculate elapsed time since session started
-  const elapsedTimeInSeconds = Math.floor((Date.now() - createdAt) / 1000);
+  const elapsedTimeInSeconds = useMemo(() => {
+    const createdAtTime = new Date(createdAt).getTime();
+    if (isNaN(createdAtTime)) return 0;
+    return Math.floor((Date.now() - createdAt) / 1000);
+  })
+  
   const initialTimeLeft = Math.max(durationInSeconds - elapsedTimeInSeconds, 0);
 
   const [timeLeft, setTimeLeft] = useState(initialTimeLeft);

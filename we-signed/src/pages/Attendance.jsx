@@ -12,11 +12,11 @@ export default function AttendancePage() {
   const getDurationInMs = (duration, unit) => {
     switch (unit) {
       case "minutes":
-        return duration * 60 * 1000;
+        return duration * 60;
       case "hours":
-        return duration * 60 * 60 * 1000;
+        return duration * 3600;
       case "seconds":
-        return duration * 1000;
+        return duration;
       default:
         return 0;
     }
@@ -24,12 +24,12 @@ export default function AttendancePage() {
 
   // Compute remaining seconds based on time difference
   const computeRemainingSeconds = (createdAt, duration, unit) => {
-    const now = Date.now(); // adjust using time offset
     const durationMs = getDurationInMs(duration, unit);
-    const elapsed = now - createdAt;
-    const remainingMs = durationMs - elapsed;
-    if (remainingMs <= 0) return 0;
-    return Math.floor(remainingMs / 1000);
+    const createdAtTime = new Date(createdAt).getTime();
+    if (isNaN(createdAtTime)) return 0;
+    const elapsed = Math.floor((Date.now() - createdAtTime) / 1000);
+    const remainingMs = Math.max(durationMs - elapsed, 0);
+    return remainingMs;
   };
 
   const [duration, setDuration] = useState(0);
