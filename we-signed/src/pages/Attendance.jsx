@@ -8,6 +8,7 @@ import { FaSearch } from "react-icons/fa";
 import { useAlert } from "../components/AlertContext.jsx";
 
 export default function AttendancePage() {
+
   // Convert duration units to milliseconds
   const getDurationInMs = (duration, unit) => {
     switch (unit) {
@@ -24,8 +25,9 @@ export default function AttendancePage() {
 
   // Compute remaining seconds based on time difference
   const computeRemainingSeconds = (createdAt, duration, unit) => {
-    const durationMs = getDurationInMs(duration, unit);
-    const createdAtTime = new Date(createdAt).getTime();
+    const safeDuration = Number(duration) || 0;
+    const durationMs = getDurationInMs(safeDuration, unit);
+    const createdAtTime = Number(createdAt);
     if (isNaN(createdAtTime)) return 0;
     const elapsed = Math.floor((Date.now() - createdAtTime) / 1000);
     const remainingMs = Math.max(durationMs - elapsed, 0);

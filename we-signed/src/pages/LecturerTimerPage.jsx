@@ -30,22 +30,23 @@ export default function TimerPage() {
   }
 
   // 🔹 Convert duration into seconds based on unit
+  const safeDuration = Number(duration) || 0;
   const durationInSeconds = useMemo(() => {
     switch (duration_unit) {
       case "minutes":
-        return duration * 60;
+        return safeDuration * 60;
       case "hours":
-        return duration * 3600;
+        return safeDuration * 3600;
       default:
-        return duration;
+        return safeDuration;
     }
   }, [duration, duration_unit]);
 
   // 🔹 Calculate elapsed time since session started
   const elapsedTimeInSeconds = useMemo(() => {
-    const createdAtTime = new Date(createdAt).getTime();
+    const createdAtTime = Number(createdAt);
     if (isNaN(createdAtTime)) return 0;
-    return Math.floor((Date.now() - createdAt) / 1000);
+    return Math.floor((Date.now() - createdAtTime) / 1000);
   })
   
   const initialTimeLeft = Math.max(durationInSeconds - elapsedTimeInSeconds, 0);
