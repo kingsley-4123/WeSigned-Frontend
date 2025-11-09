@@ -116,15 +116,24 @@ export default function WelcomePage() {
           initial={{ opacity: 0, y: 20 }}
           animate={heroBtnInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6 }}
-          whileHover={{ scale: 1.05 }}
         >
-          <button
-            size="lg"  
-            className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all hover:cursor-pointer text-white font-semibold text-[16px] px-3 py-4 md:text-lg md:px-4 md:py-5 rounded-lg"
-            onClick={scrollToFeatures}
-          >
-            Explore Features
-          </button>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+            <button
+              size="lg"  
+              className="bg-gradient-to-r from-[#273c72] to-[#94c04c] hover:from-[#23376b] hover:to-[#669b11] hover:scale-3d transition-all hover:cursor-pointer text-white font-semibold text-[16px] px-3 py-4 md:text-lg md:px-4 md:py-5 rounded-lg"
+              onClick={scrollToFeatures}
+            >
+              Explore Features
+            </button>
+            <button
+              size="lg"  
+              className="bg-white text-[#273c72] border border-[#273c72] hover:bg-[#284283] hover:text-white transition-all hover:scale-105 font-semibold text-[16px] px-8 py-4 cursor-pointer md:text-lg md:px-4 md:py-5 rounded-lg"
+              onClick={()=> navigate("/auth")}
+            >
+              Get Started
+            </button>
+          </div>
+          
         </motion.div>
       </section>
 

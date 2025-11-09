@@ -23,7 +23,6 @@ import StudentPageOffline from "./pages/StudentPageOffline";
 import LecturerPageOffline from "./pages/LecturerPageOffline";
 import { triggerAttendanceSync, triggerSessionsSync } from "./registerSw";
 import OfflinePage from "./pages/OfflinePage"; 
-import NotificationPrompt from './components/NotificationPrompt';
 import ExcelComparePage from './pages/ExcelComparePage';
 import OfflineHeader from "./pages/OfflineHeader";
 import OfflineLoginPage from "./pages/OfflineLogin.jsx";
@@ -95,7 +94,6 @@ export default function App() {
 
   return (
     <AlertProvider>
-      <NotificationPrompt />
       <Router>
         <Routes>
         {isOnline ? (
