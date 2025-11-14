@@ -31,18 +31,19 @@ export default function OfflineLoginPage() {
         const savedUsers = await getAllData('user');
         if (savedUsers.length <= 0) {
             showAlert("There's no existing user available!", 'error');
+            setLoading(false);
             return;
         }
         const user = savedUsers.find(u => u.email === email);
         if (!user) {
-            setError('User not found. Please check your email.');
+            setError('Incorrect username or password.');
             setLoading(false);
             return;
         }
 
         const decryptedPassword = await decryptText(user.password);
         if(decryptedPassword !== password) {
-            setError('Incorrect password. Please try again.');
+            setError('Incorrect username or password.');
             setLoading(false);
             return;
         }

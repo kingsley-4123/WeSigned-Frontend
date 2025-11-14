@@ -117,7 +117,7 @@ export default function AttendancePage() {
     }
   };
 
-  // ✅ Submit attendance
+  // Submit attendance
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

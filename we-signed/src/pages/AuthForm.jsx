@@ -110,12 +110,8 @@ function AuthForm() {
           const isEmpty = await isStoreEmpty('user');
           
           if (isEmpty && userData) {
-            const encryptedText = await encryptText(userId);
-            const encryptedPassword = await encryptText(password);
-            await putData('user', { ...userData, userId: encryptedText, password: encryptedPassword });
-            localStorage.setItem('token', token);
-            setSuccess(true);
-            setTimeout(() => navigate('/dashboard'), 1500);
+            showAlert("Can't find your registration data on this device. Please kindly re-register.", "error");
+            setLoading(false);
           } else if (!isEmpty) {
             const existingUsers = await getAllData('user');
             const existingUser = existingUsers.find((u) => u.email === email);
